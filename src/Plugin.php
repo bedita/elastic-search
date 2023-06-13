@@ -6,7 +6,7 @@ namespace BEdita\ElasticSearch;
 use Cake\Core\BasePlugin;
 
 /**
- * Plugin for ElasticSearch
+ * Plugin for BEdita ElasticSearch
  */
 class Plugin extends BasePlugin
 {
