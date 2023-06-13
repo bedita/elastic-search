@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace BEdita\ElasticSearch\Test\TestCase;
 
+use BEdita\ElasticSearch\Plugin;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -16,9 +17,12 @@ class PluginTest extends TestCase
      * Dummy test
      *
      * @return void
+     * @covers ::dummy()
      */
     public function testDummy(): void
     {
-        static::assertSame('dummy', 'dummy');
+        $plugin = new Plugin();
+        $actual = $plugin->dummy();
+        static::assertSame('dummy', $actual);
     }
 }
