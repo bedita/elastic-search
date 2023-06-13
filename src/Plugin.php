@@ -10,13 +10,4 @@ use Cake\Core\BasePlugin;
  */
 class Plugin extends BasePlugin
 {
-    /**
-     * A dummy function
-     *
-     * @return string
-     */
-    public function dummy(): string
-    {
-        return 'dummy';
-    }
 }
