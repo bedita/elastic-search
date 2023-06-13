@@ -1,0 +1,24 @@
+name: 'php'
+
+on:
+  pull_request:
+    paths:
+      - '**/*.php'
+      - '.github/workflows/php.yml'
+      - 'composer.json'
+  push:
+    paths:
+      - '**/*.php'
+      - '.github/workflows/php.yml'
+      - 'composer.json'
+
+jobs:
+  cs:
+    uses: bedita/github-workflows/.github/workflows/php-cs.yml@v1
+    with:
+      php_versions: '["7.4","8.1","8.2"]'
+
+  stan:
+    uses: bedita/github-workflows/.github/workflows/php-stan.yml@v1
+    with:
+      php_versions: '["7.4","8.1","8.2"]'
