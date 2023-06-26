@@ -3,8 +3,8 @@ namespace BEdita\ElasticSearch\Adapter;
 
 use BEdita\Core\Search\BaseAdapter;
 use Cake\Database\Expression\ComparisonExpression;
-use Cake\ORM\Query;
 use Cake\Datasource\EntityInterface;
+use Cake\ORM\Query;
 
 class ElasticSearchAdapter extends BaseAdapter
 {
@@ -36,9 +36,9 @@ class ElasticSearchAdapter extends BaseAdapter
     /**
      * Build query and return it
      *
-     * @param Query $query The query
+     * @param \Cake\ORM\Query $query The query
      * @param array $options The options
-     * @return Query
+     * @return \Cake\ORM\Query
      */
     protected function buildQuery(Query $query, array $options): Query
     {

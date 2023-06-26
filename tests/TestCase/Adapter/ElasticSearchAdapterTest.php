@@ -13,23 +13,14 @@ use Cake\TestSuite\TestCase;
 class ElasticSearchAdapterTest extends TestCase
 {
     /**
-     * Fixtures
-     *
-     * @var array
-     */
-    protected $fixtures = [
-        'ObjectsFixture',
-    ];
-
-    /**
      * Test `buildElasticSearchQuery` method
      *
      * @return void
      * @covers ::buildElasticSearchQuery()
      */
-    public function testBuildElasticSearchQueryWithSingleTerm(): void
+    public function testBuildElasticSearchQuery(): void
     {
-        $reflectionClass = new \ReflectionClass(ElasticSearchAdapter::class);
+        $reflectionClass = new \ReflectionClass(ElasticSearchAdapter::class);// @phan-suppress-current-line
         $method = $reflectionClass->getMethod('buildElasticSearchQuery');
         $method->setAccessible(true);
         $options = [];
