@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use BEdita\Core\ORM\Locator\TableLocator;
+use Cake\Cache\Cache;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
@@ -22,3 +23,4 @@ ConnectionManager::alias('test', 'default');
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
 }
+Cache::disable();

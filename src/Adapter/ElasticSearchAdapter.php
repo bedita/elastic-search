@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BEdita\ElasticSearch\Adapter;
 
 use BEdita\Core\Search\BaseAdapter;
@@ -127,15 +129,13 @@ class ElasticSearchAdapter extends BaseAdapter
                 }
             });
         } catch (Exception $e) {
-            $this->log($e, LogLevel::CRITICAL);
+            $this->log($e->getMessage(), LogLevel::CRITICAL);
 
             return null;
         }
 
-        $table = (new Table(compact('connection', 'table', 'schema')))
+        return (new Table(compact('connection', 'table', 'schema')))
             ->setPrimaryKey('id')
             ->setDisplayField('score');
-
-        return $table;
     }
 }

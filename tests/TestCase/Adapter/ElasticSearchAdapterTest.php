@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BEdita\ElasticSearch\Test\TestCase\Adapter;
 
 use BEdita\ElasticSearch\Adapter\ElasticSearchAdapter;
