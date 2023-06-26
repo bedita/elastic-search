@@ -11,6 +11,7 @@ use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
+use Exception;
 use Psr\Log\LogLevel;
 
 class ElasticSearchAdapter extends BaseAdapter
@@ -120,12 +121,12 @@ class ElasticSearchAdapter extends BaseAdapter
         try {
             // Execute SQL to create table. In MySQL the transaction is completely useless,
             // because `CREATE TABLE` implicitly implies a commit.
-            $connection->transactional(function (Connection $connection) use ($schema) {
+            $connection->transactional(function (Connection $connection) use ($schema): void {
                 foreach ($schema->createSql($connection) as $statement) {
                     $connection->execute($statement);
                 }
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log($e, LogLevel::CRITICAL);
 
             return null;
