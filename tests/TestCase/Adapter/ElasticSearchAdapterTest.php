@@ -59,11 +59,11 @@ class ElasticSearchAdapterTest extends TestCase
     /**
      * Test `search` method
      *
+     * @param string $expected
      * @param Query $query
      * @param string $text
      * @param array $options
      * @param array $config
-     * @param string $expected
      * @return void
      * @covers ::search()
      * @covers ::buildQuery()
