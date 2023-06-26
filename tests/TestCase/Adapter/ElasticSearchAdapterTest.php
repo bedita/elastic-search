@@ -4,6 +4,7 @@ namespace BEdita\ElasticSearch\Test\TestCase\Adapter;
 use BEdita\ElasticSearch\Adapter\ElasticSearchAdapter;
 use Cake\ORM\Query;
 use Cake\TestSuite\TestCase;
+use ReflectionClass;
 
 /**
  * {@see BEdita\Core\Command\ElasticSearchAdapter} Test Case
@@ -20,7 +21,7 @@ class ElasticSearchAdapterTest extends TestCase
      */
     public function testBuildElasticSearchQuery(): void
     {
-        $reflectionClass = new \ReflectionClass(ElasticSearchAdapter::class);// @phan-suppress-current-line
+        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
         $method = $reflectionClass->getMethod('buildElasticSearchQuery');
         $method->setAccessible(true);
         $options = [];

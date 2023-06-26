@@ -2,18 +2,28 @@
 namespace BEdita\ElasticSearch\Adapter;
 
 use BEdita\Core\Search\BaseAdapter;
+use Cake\Database\Connection;
 use Cake\Database\Expression\ComparisonExpression;
+use Cake\Database\Expression\IdentifierExpression;
+use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\EntityInterface;
+use Cake\Log\LogTrait;
+use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
+use Psr\Log\LogLevel;
 
 class ElasticSearchAdapter extends BaseAdapter
 {
+    use LocatorAwareTrait;
+    use LogTrait;
+
     /**
      * @inheritDoc
      */
     public function search(Query $query, string $text, array $options = [], array $config = []): Query
     {
-        return $query;
+        return $this->buildQuery($query, $options);
     }
 
     /**
@@ -30,7 +40,7 @@ class ElasticSearchAdapter extends BaseAdapter
      */
     protected function buildElasticSearchQuery(array $options): array
     {
-        return ['todo'];
+        return [];
     }
 
     /**
@@ -46,89 +56,85 @@ class ElasticSearchAdapter extends BaseAdapter
 
         if (count($results) === 0) {
             // Nothing found. No results should be returned. Add a contradiction to the `WHERE` clause.
-            return $query->where(new ComparisonExpression(1, 1, 'integer', '<>'));
+            return $query->where(new ComparisonExpression('1', '1', 'integer', '<>'));
         }
 
-        // TODO: implement this
-        return $query;
+        // Prepare temporary table with `id` and `score` from ElasticSearch results.
+        $tempTable = $this->createTempTable();
+        $insertQuery = $tempTable->query()->insert(['id', 'score']);
+        foreach ($results as $row) {
+            $insertQuery = $insertQuery->values($row);
+        }
+        $insertQuery->execute();
 
-        // // Prepare temporary table with `id` and `score` from ElasticSearch results.
-        // $tempTable = sprintf('elasticsearch_%s', sha1($this->compiledQuery));
-        // $tempTable = $this->createTempTable($tempTable);
-        // $insertQuery = $tempTable->query()->insert(['id', 'score']);
-        // foreach ($results as $row) {
-        //     $insertQuery = $insertQuery->values($row);
-        // }
-        // $insertQuery->execute();
-
-        // // Add a join with the temporary table to filter by ID and sort by relevance score.
-        // return $query
-        //     ->innerJoin(
-        //         $tempTable->getTable(),
-        //         new ComparisonExpression(
-        //             new IdentifierExpression($tempTable->aliasField('id')),
-        //             new IdentifierExpression($this->getTable()->aliasField('id')),
-        //             'integer',
-        //             '='
-        //         )
-        //     )
-        //     ->orderDesc($tempTable->aliasField('score'));
+        // Add a join with the temporary table to filter by ID and sort by relevance score.
+        return $query
+            ->innerJoin(
+                $tempTable->getTable(),
+                new ComparisonExpression(
+                    new IdentifierExpression($tempTable->aliasField('id')),
+                    new IdentifierExpression($this->fetchTable()->aliasField('id')),
+                    'integer',
+                    '='
+                )
+            )
+            ->orderDesc($tempTable->aliasField('score'));
     }
 
-    // /**
-    //  * Create a temporary table to store search results.
-    //  *
-    //  * @param string $table Temporary table name.
-    //  * @return \Cake\ORM\Table|null
-    //  */
-    // protected function createTempTable($table)
-    // {
-    //     // $connection = $this->getTable()->getConnection();
-    //     // $schema = (new TableSchema($table))
-    //     //     ->setTemporary(true)
-    //     //     ->addColumn('id', [
-    //     //         'type' => TableSchema::TYPE_INTEGER,
-    //     //         'length' => 11,
-    //     //         'unsigned' => true,
-    //     //         'null' => false,
-    //     //     ])
-    //     //     ->addColumn('score', [
-    //     //         'type' => TableSchema::TYPE_FLOAT,
-    //     //         'null' => false,
-    //     //     ])
-    //     //     ->addConstraint(
-    //     //         'PRIMARY',
-    //     //         [
-    //     //             'type' => TableSchema::CONSTRAINT_PRIMARY,
-    //     //             'columns' => ['id'],
-    //     //         ]
-    //     //     )
-    //     //     ->addIndex(
-    //     //         sprintf('%s_score_idx', str_replace('_', '', $table)),
-    //     //         [
-    //     //             'type' => TableSchema::INDEX_INDEX,
-    //     //             'columns' => ['score'],
-    //     //         ]
-    //     //     );
+    /**
+     * Create a temporary table to store search results.
+     *
+     * @return \Cake\ORM\Table|null
+     */
+    protected function createTempTable(): ?Table
+    {
+        $table = sprintf('elasticsearch_%s', time());
+        $connection = $this->fetchTable()->getConnection();
+        $schema = (new TableSchema($table))
+            ->setTemporary(true)
+            ->addColumn('id', [
+                'type' => TableSchema::TYPE_INTEGER,
+                'length' => 11,
+                'unsigned' => true,
+                'null' => false,
+            ])
+            ->addColumn('score', [
+                'type' => TableSchema::TYPE_FLOAT,
+                'null' => false,
+            ])
+            ->addConstraint(
+                'PRIMARY',
+                [
+                    'type' => TableSchema::CONSTRAINT_PRIMARY,
+                    'columns' => ['id'],
+                ]
+            )
+            ->addIndex(
+                sprintf('%s_score_idx', str_replace('_', '', $table)),
+                [
+                    'type' => TableSchema::INDEX_INDEX,
+                    'columns' => ['score'],
+                ]
+            );
 
-    //     // try {
-    //     //     // Execute SQL to create table. In MySQL the transaction is completely useless,
-    //     //     // because `CREATE TABLE` implicitly implies a commit.
-    //     //     $connection->transactional(function (Connection $connection) use ($schema) {
-    //     //         foreach ($schema->createSql($connection) as $statement) {
-    //     //             $connection->execute($statement);
-    //     //         }
-    //     //     });
-    //     // } catch (\Exception $e) {
-    //     //     $this->log($e, LogLevel::CRITICAL);
+        try {
+            // Execute SQL to create table. In MySQL the transaction is completely useless,
+            // because `CREATE TABLE` implicitly implies a commit.
+            $connection->transactional(function (Connection $connection) use ($schema) {
+                foreach ($schema->createSql($connection) as $statement) {
+                    $connection->execute($statement);
+                }
+            });
+        } catch (\Exception $e) {
+            $this->log($e, LogLevel::CRITICAL);
 
-    //     //     return null;
-    //     // }
+            return null;
+        }
 
-    //     // $table = (new Table(compact('connection', 'table', 'schema')))
-    //     //     ->setPrimaryKey('id')
-    //     //     ->setDisplayField('score');
+        $table = (new Table(compact('connection', 'table', 'schema')))
+            ->setPrimaryKey('id')
+            ->setDisplayField('score');
 
-    //     // return $table;
-    // }
+        return $table;
+    }
 }
