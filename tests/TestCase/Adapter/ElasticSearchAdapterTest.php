@@ -2,7 +2,11 @@
 namespace BEdita\ElasticSearch\Test\TestCase\Adapter;
 
 use BEdita\ElasticSearch\Adapter\ElasticSearchAdapter;
+use Cake\Database\Connection;
+use Cake\Database\Driver\Sqlite;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\TestSuite\TestCase;
 use ReflectionClass;
 
@@ -26,7 +30,7 @@ class ElasticSearchAdapterTest extends TestCase
         $method->setAccessible(true);
         $options = [];
         $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$options]);
-        $expected = ['todo'];
+        $expected = [];
         static::assertEquals($expected, $actual);
     }
 
@@ -60,6 +64,8 @@ class ElasticSearchAdapterTest extends TestCase
      * @param string $expected
      * @return void
      * @covers ::search()
+     * @covers ::buildQuery()
+     * @covers ::buildElasticSearchQuery()
      * @dataProvider searchProvider()
      */
     public function testSearch(
@@ -72,5 +78,46 @@ class ElasticSearchAdapterTest extends TestCase
         $adapter = new ElasticSearchAdapter();
         $actual = $adapter->search($query, $text, $options, $config);
         static::assertInstanceOf($expected, $actual);
+    }
+
+    /**
+     * Test `createTempTable` method
+     *
+     * @return void
+     * @covers ::createTempTable()
+     */
+    public function testCreateTempTable(): void
+    {
+        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
+        $method = $reflectionClass->getMethod('createTempTable');
+        $method->setAccessible(true);
+        $connection = ConnectionManager::get('test');
+        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$connection]);
+        $expected = Table::class;
+        static::assertInstanceOf($expected, $actual);
+    }
+
+    /**
+     * Test `createTempTable` method on wrong db connection
+     *
+     * @return void
+     * @covers ::createTempTable()
+     */
+    public function testCreateTempTableNull(): void
+    {
+        ConnectionManager::setConfig('test2', [
+            'className' => Connection::class,
+            'driver' => Sqlite::class,
+            'database' => dirname(__DIR__) . DS . 'wrongdir' . DS . 'test2.sqlite',
+            'encoding' => 'utf8',
+            'cacheMetadata' => true,
+            'quoteIdentifiers' => false,
+        ]);
+        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
+        $method = $reflectionClass->getMethod('createTempTable');
+        $method->setAccessible(true);
+        $connection = ConnectionManager::get('test2');
+        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$connection]);
+        static::assertNull($actual);
     }
 }

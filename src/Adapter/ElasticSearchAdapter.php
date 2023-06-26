@@ -61,7 +61,7 @@ class ElasticSearchAdapter extends BaseAdapter
         }
 
         // Prepare temporary table with `id` and `score` from ElasticSearch results.
-        $tempTable = $this->createTempTable();
+        $tempTable = $this->createTempTable($query->getConnection());
         $insertQuery = $tempTable->query()->insert(['id', 'score']);
         foreach ($results as $row) {
             $insertQuery = $insertQuery->values($row);
@@ -85,12 +85,12 @@ class ElasticSearchAdapter extends BaseAdapter
     /**
      * Create a temporary table to store search results.
      *
+     * @param \Cake\Database\Connection $connection The database connection
      * @return \Cake\ORM\Table|null
      */
-    protected function createTempTable(): ?Table
+    protected function createTempTable(Connection $connection): ?Table
     {
         $table = sprintf('elasticsearch_%s', time());
-        $connection = $this->fetchTable()->getConnection();
         $schema = (new TableSchema($table))
             ->setTemporary(true)
             ->addColumn('id', [
