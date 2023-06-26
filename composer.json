@@ -39,6 +39,7 @@
     "autoload-dev": {
         "psr-4": {
             "BEdita\\ElasticSearch\\Test\\": "tests/",
+            "BEdita\\Core\\Test\\": "vendor/bedita/core/tests/",
             "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
         }
     },
