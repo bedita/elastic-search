@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+use BEdita\Core\ORM\Locator\TableLocator;
+use Cake\Database\Connection;
+use Cake\Database\Driver\Sqlite;
+use Cake\Datasource\ConnectionManager;
+use Cake\ORM\TableRegistry;
+
 /**
  * Test suite bootstrap for ElasticSearch.
  *
@@ -35,4 +41,23 @@ require_once $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
 
 if (file_exists($root . '/config/bootstrap.php')) {
     require $root . '/config/bootstrap.php';
+}
+
+// DebugKit skips settings these connection config if PHP SAPI is CLI / PHPDBG.
+// But since PagesControllerTest is run with debug enabled and DebugKit is loaded
+// in application, without setting up these config DebugKit errors out.
+ConnectionManager::setConfig('test_debug_kit', [
+    'className' => Connection::class,
+    'driver' => Sqlite::class,
+    'database' => dirname(__DIR__) . DS . 'tmp' . DS . 'debug_kit.sqlite',
+    'encoding' => 'utf8',
+    'cacheMetadata' => true,
+    'quoteIdentifiers' => false,
+]);
+
+ConnectionManager::alias('test', 'default');
+ConnectionManager::alias('test_debug_kit', 'debug_kit');
+
+if (!TableRegistry::getTableLocator() instanceof TableLocator) {
+    TableRegistry::setTableLocator(new TableLocator());
 }
