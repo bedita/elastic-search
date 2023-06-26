@@ -8,9 +8,6 @@ use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
-if (file_exists($root . '/config/bootstrap.php')) {
-    require $root . '/config/bootstrap.php';
-}
 
 ConnectionManager::setConfig('test', [
     'className' => Connection::class,
