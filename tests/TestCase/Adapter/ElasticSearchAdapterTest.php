@@ -13,9 +13,9 @@ use Cake\TestSuite\TestCase;
 use ReflectionClass;
 
 /**
- * {@see BEdita\Core\Command\ElasticSearchAdapter} Test Case
+ * {@see BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
  *
- * @coversDefaultClass \BEdita\Core\Command\ElasticSearchAdapter
+ * @coversDefaultClass \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter
  */
 class ElasticSearchAdapterTest extends TestCase
 {
