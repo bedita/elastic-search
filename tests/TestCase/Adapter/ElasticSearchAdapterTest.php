@@ -20,9 +20,7 @@ use ReflectionClass;
 class ElasticSearchAdapterTest extends TestCase
 {
     /**
-     * Test fixtures
-     *
-     * @var array
+     * @inheritDoc
      */
     protected $fixtures = [
         'plugin.BEdita/Core.Objects',
