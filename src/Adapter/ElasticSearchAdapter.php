@@ -82,7 +82,7 @@ class ElasticSearchAdapter extends BaseAdapter
                 $tempTable->getTable(),
                 new ComparisonExpression(
                     new IdentifierExpression($tempTable->aliasField('id')),
-                    new IdentifierExpression($this->fetchTable('objects')->aliasField('id')),
+                    new IdentifierExpression($query->getRepository()->aliasField('id')),
                     'integer',
                     '='
                 )

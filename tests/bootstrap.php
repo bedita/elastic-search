@@ -7,8 +7,6 @@ use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
-use Cake\I18n\FrozenDate;
-use Cake\I18n\FrozenTime;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
 use Migrations\TestSuite\Migrator;
@@ -75,18 +73,6 @@ if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
 }
 
-$now = FrozenTime::parse('2023-06-26T00:00:00Z');
-FrozenTime::setTestNow($now);
-FrozenDate::setTestNow($now);
-
-// Fixate sessionid early on, as php7.2+
-// does not allow the sessionid to be set after stdout
-// has been written to.
-//session_id('cli');
-
-//TypeFactory::map('jsonobject', JsonObjectType::class);
-
-//Router::reload();
 Security::setSalt('YlAPGwItcN6msaiuej76a6uyasdNTn3ikcO');
 
 (new Migrator())->runMany([
