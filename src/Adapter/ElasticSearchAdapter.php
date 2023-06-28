@@ -13,6 +13,7 @@ use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
+use Cake\Utility\Security;
 use Exception;
 use Psr\Log\LogLevel;
 
@@ -26,7 +27,7 @@ class ElasticSearchAdapter extends BaseAdapter
      */
     public function search(Query $query, string $text, array $options = [], array $config = []): Query
     {
-        return $this->buildQuery($query, $options);
+        return $this->buildQuery($query, $text, $options);
     }
 
     /**
@@ -40,8 +41,12 @@ class ElasticSearchAdapter extends BaseAdapter
 
     /**
      * Build elastic search query
+     *
+     * @param string $text The search text
+     * @param array $options The options
+     * @return array
      */
-    protected function buildElasticSearchQuery(array $options): array
+    protected function buildElasticSearchQuery(string $text, array $options): array
     {
         return [];
     }
@@ -50,12 +55,13 @@ class ElasticSearchAdapter extends BaseAdapter
      * Build query and return it
      *
      * @param \Cake\ORM\Query $query The query
+     * @param string $text The search text
      * @param array $options The options
      * @return \Cake\ORM\Query
      */
-    protected function buildQuery(Query $query, array $options): Query
+    protected function buildQuery(Query $query, string $text, array $options): Query
     {
-        $results = $this->buildElasticSearchQuery($options);
+        $results = $this->buildElasticSearchQuery($text, $options);
 
         if (count($results) === 0) {
             // Nothing found. No results should be returned. Add a contradiction to the `WHERE` clause.
@@ -76,7 +82,7 @@ class ElasticSearchAdapter extends BaseAdapter
                 $tempTable->getTable(),
                 new ComparisonExpression(
                     new IdentifierExpression($tempTable->aliasField('id')),
-                    new IdentifierExpression($this->fetchTable()->aliasField('id')),
+                    new IdentifierExpression($this->fetchTable('objects')->aliasField('id')),
                     'integer',
                     '='
                 )
@@ -86,13 +92,16 @@ class ElasticSearchAdapter extends BaseAdapter
 
     /**
      * Create a temporary table to store search results.
+     * The table is created with a `score` column to sort results by relevance.
+     * The table is dropped when the connection is closed.
+     * Returns `null` if the table cannot be created.
      *
      * @param \Cake\Database\Connection $connection The database connection
      * @return \Cake\ORM\Table|null
      */
     protected function createTempTable(Connection $connection): ?Table
     {
-        $table = sprintf('elasticsearch_%s', time());
+        $table = sprintf('elasticsearch_%s', Security::randomString(16));
         $schema = (new TableSchema($table))
             ->setTemporary(true)
             ->addColumn('id', [

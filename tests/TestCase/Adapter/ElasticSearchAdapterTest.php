@@ -38,8 +38,9 @@ class ElasticSearchAdapterTest extends TestCase
         $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
         $method = $reflectionClass->getMethod('buildElasticSearchQuery');
         $method->setAccessible(true);
+        $text = 'searchme';
         $options = [];
-        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$options]);
+        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
         $expected = [];
         static::assertEquals($expected, $actual);
     }
@@ -91,6 +92,28 @@ class ElasticSearchAdapterTest extends TestCase
     }
 
     /**
+     * Test `search` method with mock for elastic search
+     *
+     * @return void
+     * @covers ::search()
+     * @covers ::buildQuery()
+     * @covers ::buildElasticSearchQuery()
+     * @covers ::createTempTable()
+     */
+    public function testSearchMockElastic(): void
+    {
+        $adapter = $this->createPartialMock(ElasticSearchAdapter::class, ['buildElasticSearchQuery']);
+        $adapter->method('buildElasticSearchQuery')->willReturn([
+            ['id' => 1, 'score' => 1.0],
+            ['id' => 2, 'score' => 0.5],
+        ]);
+        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
+        $text = 'searchme';
+        $actual = $adapter->search($query, $text, [], []);
+        static::assertInstanceOf(Query::class, $actual);
+    }
+
+    /**
      * Test `createTempTable` method
      *
      * @return void
@@ -98,6 +121,7 @@ class ElasticSearchAdapterTest extends TestCase
      */
     public function testCreateTempTable(): void
     {
+        sleep(1);
         $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
         $method = $reflectionClass->getMethod('createTempTable');
         $method->setAccessible(true);
