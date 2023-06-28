@@ -56,8 +56,8 @@ Cache::setConfig([
         'className' => 'Null',
     ],
 ]);
+ConnectionManager::drop('test');
 if (getenv('db_dsn')) {
-    ConnectionManager::drop('test');
     ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
 } else {
     ConnectionManager::setConfig('test', [
@@ -89,11 +89,11 @@ FrozenDate::setTestNow($now);
 //Router::reload();
 Security::setSalt('YlAPGwItcN6msaiuej76a6uyasdNTn3ikcO');
 
-// clear all before running tests
-TableRegistry::getTableLocator()->clear();
-Cache::clearAll();
-
 (new Migrator())->runMany([
     ['plugin' => 'BEdita/Core'],
     ['connection' => 'test'],
 ]);
+
+// clear all before running tests
+TableRegistry::getTableLocator()->clear();
+Cache::clearAll();

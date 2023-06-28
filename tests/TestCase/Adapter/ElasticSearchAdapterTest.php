@@ -9,6 +9,7 @@ use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use ReflectionClass;
 
@@ -26,6 +27,15 @@ class ElasticSearchAdapterTest extends TestCase
         'plugin.BEdita/Core.ObjectTypes',
         'plugin.BEdita/Core.Objects',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public function setUp(): void
+    {
+        TableRegistry::getTableLocator()->clear();
+        parent::setUp();
+    }
 
     /**
      * Test `buildElasticSearchQuery` method
