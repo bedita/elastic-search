@@ -23,8 +23,8 @@ class ElasticSearchAdapterTest extends TestCase
      * @inheritDoc
      */
     protected $fixtures = [
-        'plugin.BEdita/Core.Objects',
         'plugin.BEdita/Core.ObjectTypes',
+        'plugin.BEdita/Core.Objects',
     ];
 
     /**
