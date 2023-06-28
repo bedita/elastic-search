@@ -68,8 +68,8 @@ if (getenv('db_dsn')) {
         'cacheMetadata' => true,
         'quoteIdentifiers' => false,
     ]);
-    ConnectionManager::alias('test', 'default');
 }
+ConnectionManager::alias('test', 'default');
 
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
