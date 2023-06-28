@@ -56,16 +56,20 @@ Cache::setConfig([
         'className' => 'Null',
     ],
 ]);
-
-ConnectionManager::setConfig('test', [
-    'className' => Connection::class,
-    'driver' => Sqlite::class,
-    'database' => dirname(__DIR__) . DS . 'tmp' . DS . 'test.sqlite',
-    'encoding' => 'utf8',
-    'cacheMetadata' => true,
-    'quoteIdentifiers' => false,
-]);
-ConnectionManager::alias('test', 'default');
+if (getenv('db_dsn')) {
+    ConnectionManager::drop('test');
+    ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
+} else {
+    ConnectionManager::setConfig('test', [
+        'className' => Connection::class,
+        'driver' => Sqlite::class,
+        'database' => dirname(__DIR__) . DS . 'tmp' . DS . 'test.sqlite',
+        'encoding' => 'utf8',
+        'cacheMetadata' => true,
+        'quoteIdentifiers' => false,
+    ]);
+    ConnectionManager::alias('test', 'default');
+}
 
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
