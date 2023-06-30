@@ -111,7 +111,8 @@ class ElasticSearchAdapterTest extends TestCase
     public function testSearchMockElastic(): void
     {
         $adapter = new class extends ElasticSearchAdapter {
-            protected function buildElasticSearchQuery(string $text, array $options): array {
+            protected function buildElasticSearchQuery(string $text, array $options): array
+            {
                 return [
                     ['id' => 1, 'score' => 1.0],
                     ['id' => 2, 'score' => 0.5],
