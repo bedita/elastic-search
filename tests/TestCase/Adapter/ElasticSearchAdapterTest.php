@@ -5,7 +5,6 @@ namespace BEdita\ElasticSearch\Test\TestCase\Adapter;
 
 use BEdita\ElasticSearch\Adapter\ElasticSearchAdapter;
 use Cake\Database\Connection;
-use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
@@ -53,6 +52,7 @@ class ElasticSearchAdapterTest extends TestCase
         $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
         $expected = [];
         static::assertEquals($expected, $actual);
+        static::markTestIncomplete('This test has not been implemented yet.');
     }
 
     /**
@@ -94,8 +94,9 @@ class ElasticSearchAdapterTest extends TestCase
         array $options = []
     ): void {
         $adapter = new ElasticSearchAdapter();
-        $actual = $adapter->search($query, $text, $options);
-        static::assertInstanceOf($expected, $actual);
+        $actual = $adapter->search($query, $text, $options)->find('list', ['valueField' => 'id'])->all()->toList();
+        $expected = [];
+        static::assertSame($expected, $actual);
     }
 
     /**
@@ -109,15 +110,19 @@ class ElasticSearchAdapterTest extends TestCase
      */
     public function testSearchMockElastic(): void
     {
-        $adapter = $this->createPartialMock(ElasticSearchAdapter::class, ['buildElasticSearchQuery']);
-        $adapter->method('buildElasticSearchQuery')->willReturn([
-            ['id' => 1, 'score' => 1.0],
-            ['id' => 2, 'score' => 0.5],
-        ]);
+        $adapter = new class extends ElasticSearchAdapter {
+            protected function buildElasticSearchQuery(string $text, array $options): array {
+                return [
+                    ['id' => 1, 'score' => 1.0],
+                    ['id' => 2, 'score' => 0.5],
+                ];
+            }
+        };
         $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
         $text = 'searchme';
         $actual = $adapter->search($query, $text, []);
         static::assertInstanceOf(Query::class, $actual);
+        static::markTestIncomplete('This test has not been implemented yet.');
     }
 
     /**
@@ -128,37 +133,41 @@ class ElasticSearchAdapterTest extends TestCase
      */
     public function testCreateTempTable(): void
     {
-        sleep(1);
-        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
-        $method = $reflectionClass->getMethod('createTempTable');
-        $method->setAccessible(true);
-        $connection = ConnectionManager::get('test');
-        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$connection]);
-        $expected = Table::class;
-        static::assertInstanceOf($expected, $actual);
-    }
+        $adapter = new class extends ElasticSearchAdapter {
+            /** @inheritDoc */
+            public function createTempTable(Connection $connection): Table
+            {
+                return parent::createTempTable($connection);
+            }
+        };
 
-    /**
-     * Test `createTempTable` method on wrong db connection
-     *
-     * @return void
-     * @covers ::createTempTable()
-     */
-    public function testCreateTempTableNull(): void
-    {
-        ConnectionManager::setConfig('test2', [
-            'className' => Connection::class,
-            'driver' => Sqlite::class,
-            'database' => dirname(__DIR__) . DS . 'wrongdir' . DS . 'test2.sqlite',
-            'encoding' => 'utf8',
-            'cacheMetadata' => true,
-            'quoteIdentifiers' => false,
-        ]);
-        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
-        $method = $reflectionClass->getMethod('createTempTable');
-        $method->setAccessible(true);
-        $connection = ConnectionManager::get('test2');
-        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$connection]);
-        static::assertNull($actual);
+        $table = $adapter->createTempTable(ConnectionManager::get('test'));
+        // The type of `$table` is trivial, perform assertions on created columns or such, if necessary.
+        static::assertInstanceOf(Table::class, $table);
+        static::assertSame(
+            $table->getSchema()->getColumn('id'),
+            [
+                'type' => 'integer',
+                'length' => 11,
+                'unsigned' => true,
+                'null' => false,
+                'precision' => null,
+                'default' => null,
+                'comment' => null,
+                'autoIncrement' => null,
+            ]
+        );
+        static::assertSame(
+            $table->getSchema()->getColumn('score'),
+            [
+                'type' => 'float',
+                'null' => false,
+                'length' => null,
+                'precision' => null,
+                'default' => null,
+                'comment' => null,
+                'unsigned' => null,
+            ]
+        );
     }
 }

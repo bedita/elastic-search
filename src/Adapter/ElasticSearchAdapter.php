@@ -6,7 +6,7 @@ namespace BEdita\ElasticSearch\Adapter;
 use BEdita\Core\Search\BaseAdapter;
 use Cake\Database\Connection;
 use Cake\Database\Expression\ComparisonExpression;
-use Cake\Database\Expression\IdentifierExpression;
+use Cake\Database\Expression\QueryExpression;
 use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\EntityInterface;
 use Cake\Log\LogTrait;
@@ -16,6 +16,7 @@ use Cake\ORM\Table;
 use Cake\Utility\Security;
 use Exception;
 use Psr\Log\LogLevel;
+use RuntimeException;
 
 class ElasticSearchAdapter extends BaseAdapter
 {
@@ -80,11 +81,9 @@ class ElasticSearchAdapter extends BaseAdapter
         return $query
             ->innerJoin(
                 $tempTable->getTable(),
-                new ComparisonExpression(
-                    new IdentifierExpression($tempTable->aliasField('id')),
-                    new IdentifierExpression($query->getRepository()->aliasField('id')),
-                    'integer',
-                    '='
+                fn (QueryExpression $exp): QueryExpression => $exp->equalFields(
+                    $tempTable->aliasField('id'),
+                    $query->getRepository()->aliasField('id'),
                 )
             )
             ->orderDesc($tempTable->aliasField('score'));
@@ -94,12 +93,12 @@ class ElasticSearchAdapter extends BaseAdapter
      * Create a temporary table to store search results.
      * The table is created with a `score` column to sort results by relevance.
      * The table is dropped when the connection is closed.
-     * Returns `null` if the table cannot be created.
      *
      * @param \Cake\Database\Connection $connection The database connection
-     * @return \Cake\ORM\Table|null
+     * @return \Cake\ORM\Table
+     * @throws \RuntimeException
      */
-    protected function createTempTable(Connection $connection): ?Table
+    protected function createTempTable(Connection $connection): Table
     {
         $table = sprintf('elasticsearch_%s', Security::randomString(16));
         $schema = (new TableSchema($table))
@@ -138,9 +137,9 @@ class ElasticSearchAdapter extends BaseAdapter
                 }
             });
         } catch (Exception $e) {
-            $this->log($e->getMessage(), LogLevel::CRITICAL);
+            $this->log(sprintf('Could not create temporary table for ElasticSearch results: %s', $e), LogLevel::ERROR);
 
-            return null;
+            throw new RuntimeException('Could not create temporary table for ElasticSearch results', $e);
         }
 
         return (new Table(compact('connection', 'table', 'schema')))
