@@ -25,7 +25,7 @@ class ElasticSearchAdapter extends BaseAdapter
     /**
      * @inheritDoc
      */
-    public function search(Query $query, string $text, array $options = [], array $config = []): Query
+    public function search(Query $query, string $text, array $options = []): Query
     {
         return $this->buildQuery($query, $text, $options);
     }

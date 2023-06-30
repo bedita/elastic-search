@@ -70,7 +70,6 @@ class ElasticSearchAdapterTest extends TestCase
                 $query,
                 'text',
                 [],
-                [],
             ],
         ];
     }
@@ -82,7 +81,6 @@ class ElasticSearchAdapterTest extends TestCase
      * @param Query $query
      * @param string $text
      * @param array $options
-     * @param array $config
      * @return void
      * @covers ::search()
      * @covers ::buildQuery()
@@ -93,11 +91,10 @@ class ElasticSearchAdapterTest extends TestCase
         string $expected,
         Query $query,
         string $text,
-        array $options = [],
-        array $config = []
+        array $options = []
     ): void {
         $adapter = new ElasticSearchAdapter();
-        $actual = $adapter->search($query, $text, $options, $config);
+        $actual = $adapter->search($query, $text, $options);
         static::assertInstanceOf($expected, $actual);
     }
 
@@ -119,7 +116,7 @@ class ElasticSearchAdapterTest extends TestCase
         ]);
         $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
         $text = 'searchme';
-        $actual = $adapter->search($query, $text, [], []);
+        $actual = $adapter->search($query, $text, []);
         static::assertInstanceOf(Query::class, $actual);
     }
 
