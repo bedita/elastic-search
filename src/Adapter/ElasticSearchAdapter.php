@@ -81,6 +81,7 @@ class ElasticSearchAdapter extends BaseAdapter
         return $query
             ->innerJoin(
                 $tempTable->getTable(),
+                // @phpstan-ignore-next-line
                 fn (QueryExpression $exp): QueryExpression => $exp->equalFields(
                     $tempTable->aliasField('id'),
                     $query->getRepository()->aliasField('id'),
@@ -139,7 +140,7 @@ class ElasticSearchAdapter extends BaseAdapter
         } catch (Exception $e) {
             $this->log(sprintf('Could not create temporary table for ElasticSearch results: %s', $e), LogLevel::ERROR);
 
-            throw new RuntimeException('Could not create temporary table for ElasticSearch results', $e);
+            throw new RuntimeException('Could not create temporary table for ElasticSearch results', 0, $e);
         }
 
         return (new Table(compact('connection', 'table', 'schema')))

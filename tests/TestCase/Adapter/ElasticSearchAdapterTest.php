@@ -111,6 +111,7 @@ class ElasticSearchAdapterTest extends TestCase
     public function testSearchMockElastic(): void
     {
         $adapter = new class extends ElasticSearchAdapter {
+            // @phpstan-ignore-next-line
             protected function buildElasticSearchQuery(string $text, array $options): array
             {
                 return [
@@ -141,8 +142,9 @@ class ElasticSearchAdapterTest extends TestCase
                 return parent::createTempTable($connection);
             }
         };
-
-        $table = $adapter->createTempTable(ConnectionManager::get('test'));
+        /** @var \Cake\Database\Connection $connection */
+        $connection = ConnectionManager::get('test');
+        $table = $adapter->createTempTable($connection);
         // The type of `$table` is trivial, perform assertions on created columns or such, if necessary.
         static::assertInstanceOf(Table::class, $table);
         static::assertSame(
