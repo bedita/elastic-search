@@ -111,7 +111,6 @@ class ElasticSearchAdapterTest extends TestCase
     public function testSearchMockElastic(): void
     {
         $adapter = new class extends ElasticSearchAdapter {
-            // @phpstan-ignore-next-line
             protected function buildElasticSearchQuery(string $text, array $options): array
             {
                 return [
