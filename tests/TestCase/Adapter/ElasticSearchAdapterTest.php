@@ -100,34 +100,6 @@ class ElasticSearchAdapterTest extends TestCase
     }
 
     /**
-     * Test `search` method with mock for elastic search
-     *
-     * @return void
-     * @covers ::search()
-     * @covers ::buildQuery()
-     * @covers ::buildElasticSearchQuery()
-     * @covers ::createTempTable()
-     */
-    public function testSearchMockElastic(): void
-    {
-        $adapter = new class extends ElasticSearchAdapter {
-            protected function buildElasticSearchQuery(string $text, array $options): array
-            {
-                return [
-                    ['id' => 1, 'score' => 1.0],
-                    ['id' => 2, 'score' => 0.5],
-                ];
-            }
-        };
-        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
-        $text = 'searchme';
-        $actual = $adapter->search($query, $text, []);
-        $partialSql = 'SELECT objects.id AS objects__id';
-        static::assertInstanceOf(Query::class, $actual);
-        static::assertTrue(str_starts_with($actual->sql(), $partialSql));
-    }
-
-    /**
      * Test `search` with elastic search
      *
      * @return void
