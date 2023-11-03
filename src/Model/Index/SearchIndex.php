@@ -23,7 +23,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     /**
      * Returns the index name.
      *
-     * If it isn't set, it is constructed from v
+     * If it isn't set, it is constructed from the default collection schema and the alias for the index.
      *
      * @return string
      */

@@ -4,12 +4,20 @@ declare(strict_types=1);
 namespace BEdita\ElasticSearch\Model\Index;
 
 use Cake\Datasource\EntityInterface;
+use Cake\ElasticSearch\Datasource\Connection;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Elastica\Document;
 use Elastica\Exception\NotFoundException;
 
 trait IndexTrait
 {
+    /**
+     * Returns the ElasticSearch connection instance for this index.
+     *
+     * @return \Cake\ElasticSearch\Datasource\Connection
+     */
+    abstract public function getConnection(): Connection;
+
     /**
      * Retrieve a document from the index.
      *
