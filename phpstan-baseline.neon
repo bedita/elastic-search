@@ -11,6 +11,6 @@ parameters:
 			path: src/Model/Document/Search.php
 
 		-
-			message: "#^Cannot cast mixed to string\\.$#"
+			message: "#^Access to an undefined property Cake\\\\Datasource\\\\EntityInterface::\\$id\\.$#"
 			count: 1
 			path: src/Model/Index/SearchIndex.php
