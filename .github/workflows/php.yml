@@ -51,6 +51,7 @@ jobs:
       DB_VENDOR: '${{ fromJson(matrix.db).vendor }}'
       ELASTIC_VERSION: '${{ matrix.elastic }}'
       db_dsn: '${{ fromJson(matrix.db).dsn }}'
+      es_dsn: 'Cake\ElasticSearch\Datasource\Connection://127.0.0.1:9200?driver=Cake\ElasticSearch\Datasource\Connection'
 
     services:
       db:

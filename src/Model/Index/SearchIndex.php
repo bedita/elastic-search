@@ -13,8 +13,6 @@ use Cake\Log\Log;
 use Cake\Log\LogTrait;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
-use Elastica\Index\Settings;
-use Elastica\Mapping;
 use Elastica\Query\AbstractQuery;
 use Elasticsearch\Endpoints\Indices\PutMapping;
 use Elasticsearch\Endpoints\Indices\PutSettings;
