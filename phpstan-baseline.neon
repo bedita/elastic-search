@@ -1,16 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^If condition is always true\\.$#"
+			message: "#^Using nullsafe method call on non\\-nullable type Elastica\\\\Result\\. Use \\-\\> instead\\.$#"
 			count: 1
 			path: src/Model/Document/Search.php
 
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
-			count: 1
-			path: src/Model/Document/Search.php
-
-		-
-			message: "#^Access to an undefined property Cake\\\\Datasource\\\\EntityInterface::\\$id\\.$#"
+			message: "#^Access to an undefined property Cake\\\\Datasource\\\\EntityInterface\\:\\:\\$id\\.$#"
 			count: 1
 			path: src/Model/Index/SearchIndex.php
