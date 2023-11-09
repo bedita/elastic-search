@@ -16,4 +16,10 @@ return [
             'body' => ['type' => 'text'],
         ],
     ],
+    [
+        'name' => 'search',
+        'mapping' => [
+            'title' => ['type' => 'text'],
+        ],
+    ],
 ];
