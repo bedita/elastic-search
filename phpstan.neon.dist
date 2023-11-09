@@ -2,8 +2,6 @@ includes:
     - phpstan-baseline.neon
 parameters:
   phpVersion: 80212
-  bootstrapFiles:
-    - tests/bootstrap.php
   paths:
     - src
     - tests

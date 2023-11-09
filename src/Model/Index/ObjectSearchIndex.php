@@ -21,6 +21,21 @@ use InvalidArgumentException;
 class ObjectSearchIndex extends SearchIndex
 {
     /**
+     * @inheritDoc
+     */
+    protected static array $_properties = [
+        'uname' => ['type' => 'text'],
+        'type' => ['type' => 'text'],
+        'status' => ['type' => 'text'],
+        'deleted' => ['type' => 'boolean'],
+        'publish_start' => ['type' => 'date'],
+        'publish_end' => ['type' => 'date'],
+        'title' => ['type' => 'text'],
+        'description' => ['type' => 'text'],
+        'body' => ['type' => 'text'],
+    ];
+
+    /**
      * {@inheritDoc}
      *
      * @codeCoverageIgnore

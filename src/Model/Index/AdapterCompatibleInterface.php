@@ -21,6 +21,34 @@ interface AdapterCompatibleInterface
     public function findQuery(Query $query, array $options): Query;
 
     /**
+     * Create the index.
+     *
+     * @param array $arguments Body for the request to ElasticSearch's API
+     * @param array $options Query parameters for the request to ElasticSearch's API
+     * @return bool
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html
+     */
+    public function create(array $arguments = [], array $options = []): bool;
+
+    /**
+     * Update properties mappings, if possible.
+     *
+     * @param array $properties New properties configuration
+     * @return bool
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html
+     */
+    public function updateProperties(array $properties = []): bool;
+
+    /**
+     * Update analysis settings, if possible.
+     *
+     * @param array $analysis New analysis configuration
+     * @return bool
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+     */
+    public function updateAnalysis(array $analysis = []): bool;
+
+    /**
      * Reindex an entity.
      *
      * @param \Cake\Datasource\EntityInterface $entity Entity to be reindexed.
