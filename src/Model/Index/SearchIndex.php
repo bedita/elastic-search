@@ -88,14 +88,14 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      */
     public function create(array $arguments = [], array $options = []): bool
     {
-        if (empty(Hash::get($arguments, 'mappings.properties')) && !empty(self::$_properties)) {
-            $arguments = Hash::insert($arguments, 'mappings.properties', self::$_properties);
+        if (empty(Hash::get($arguments, 'mappings.properties')) && !empty(static::$_properties)) {
+            $arguments = Hash::insert($arguments, 'mappings.properties', static::$_properties);
         }
-        if (empty(Hash::get($arguments, 'settings.analysis')) && !empty(self::$_analysis)) {
-            $arguments = Hash::insert($arguments, 'settings.analysis', self::$_analysis);
+        if (empty(Hash::get($arguments, 'settings.analysis')) && !empty(static::$_analysis)) {
+            $arguments = Hash::insert($arguments, 'settings.analysis', static::$_analysis);
         }
 
-        $esIndex = $this->getConnection()->getIndex();
+        $esIndex = $this->getConnection()->getIndex($this->getName());
         $response = $esIndex->create($arguments, $options);
         if (!$response->isOk()) {
             Log::error(sprintf(

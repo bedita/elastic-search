@@ -45,7 +45,7 @@ class ElasticSearchAdapter extends BaseAdapter
      *
      * @return \BEdita\ElasticSearch\Model\Index\AdapterCompatibleInterface&\Cake\ElasticSearch\Index
      */
-    protected function getIndex(): Index&AdapterCompatibleInterface
+    public function getIndex(): Index&AdapterCompatibleInterface
     {
         if (!isset($this->index)) {
             $index = $this->getConfig('index', 'BEdita/ElasticSearch.Search');
