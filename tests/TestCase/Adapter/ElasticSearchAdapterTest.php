@@ -114,8 +114,8 @@ class ElasticSearchAdapterTest extends TestCase
             protected function buildElasticSearchQuery(string $text, array $options): array
             {
                 return [
-                    ['id' => 1, 'score' => 1.0],
-                    ['id' => 2, 'score' => 0.5],
+                    ['id' => '1', 'score' => 1.0],
+                    ['id' => '2', 'score' => 0.5],
                 ];
             }
         };

@@ -4,9 +4,13 @@ declare(strict_types=1);
 use BEdita\Core\ORM\Locator\TableLocator;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
-use Cake\Database\Connection;
+use Cake\Database\Connection as DbConnection;
 use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\FactoryLocator;
+use Cake\ElasticSearch\Datasource\Connection as EsConnection;
+use Cake\ElasticSearch\Datasource\IndexLocator;
+use Cake\ElasticSearch\TestSuite\Fixture\MappingGenerator;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
 use Migrations\TestSuite\Migrator;
@@ -59,7 +63,7 @@ if (getenv('db_dsn')) {
     ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
 } else {
     ConnectionManager::setConfig('test', [
-        'className' => Connection::class,
+        'className' => DbConnection::class,
         'driver' => Sqlite::class,
         'database' => dirname(__DIR__) . DS . 'tmp' . DS . 'test.sqlite',
         'encoding' => 'utf8',
@@ -68,6 +72,17 @@ if (getenv('db_dsn')) {
     ]);
 }
 ConnectionManager::alias('test', 'default');
+
+if (getenv('es_dsn')) {
+    ConnectionManager::setConfig('test-es', ['url' => getenv('es_dsn')]);
+} else {
+    ConnectionManager::setConfig('test-es', [
+        'className' => EsConnection::class,
+        'driver' => EsConnection::class,
+        'host' => '127.0.0.1',
+        'port' => 9200,
+    ]);
+}
 
 if (!TableRegistry::getTableLocator() instanceof TableLocator) {
     TableRegistry::setTableLocator(new TableLocator());
@@ -79,6 +94,12 @@ Security::setSalt('YlAPGwItcN6msaiuej76a6uyasdNTn3ikcO');
     ['plugin' => 'BEdita/Core'],
     ['connection' => 'test'],
 ]);
+
+$schema = new MappingGenerator('./tests/mappings.php', 'test-es');
+$schema->reload();
+
+$indexLocator = new IndexLocator();
+FactoryLocator::add('ElasticSearch', $indexLocator);
 
 // clear all before running tests
 TableRegistry::getTableLocator()->clear();
