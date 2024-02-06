@@ -12,6 +12,7 @@ use Cake\I18n\FrozenTime;
 use Cake\Log\Log;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\Validation\Validator;
+use Elastica\Exception\ResponseException;
 use Elastica\Query\AbstractQuery;
 use InvalidArgumentException;
 
@@ -90,9 +91,20 @@ class ObjectSearchIndex extends SearchIndex
         switch ($operation) {
             case 'softDelete':
             case 'softDeleteRestore':
-                $id = (string)$entity->id;
-                if (!$this->set($id, 'deleted', $entity->deleted)) {
-                    throw new PersistenceFailedException($this->get($id), ['set']);
+                try {
+                    $id = (string)$entity->id;
+                    if (!$this->set($id, 'deleted', $entity->deleted)) {
+                        throw new PersistenceFailedException($this->get($id), ['set']);
+                    }
+                } catch (ResponseException $e) {
+                    $fullError = (array)$e->getResponse()->getFullError();
+                    if ($fullError['type'] !== 'document_missing_exception') {
+                        throw $e;
+                    }
+
+                    // This scenario might be caused by an object that was not yet added to the index.
+                    // Rather than updating a single field on an existing document, we should add the document instead.
+                    parent::reindex($entity, 'edit');
                 }
                 break;
 
