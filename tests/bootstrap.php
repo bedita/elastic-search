@@ -13,7 +13,6 @@ use Cake\ElasticSearch\Datasource\IndexLocator;
 use Cake\ElasticSearch\TestSuite\Fixture\MappingGenerator;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
-use Migrations\TestSuite\Migrator;
 
 $findRoot = function ($root) {
     do {
