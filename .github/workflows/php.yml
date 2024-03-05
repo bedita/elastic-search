@@ -38,7 +38,9 @@ jobs:
         elastic:
           - '{"vendor": "OpenSearch 2", "image": "opensearchproject/opensearch:2", "dsn": "http://127.0.0.1:9200/?className=Cake\\ElasticSearch\\Datasource\\Connection&driver=opensearch", "options": "--health-cmd \"curl --fail --output /dev/null --silent http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s\" --health-interval 1s --health-timeout 2s --health-retries 5"}'
           - '{"vendor": "OpenSearch 1", "image": "opensearchproject/opensearch:1", "dsn": "http://127.0.0.1:9200/?className=Cake\\ElasticSearch\\Datasource\\Connection&driver=opensearch", "options": "--health-cmd \"curl --fail --output /dev/null --silent http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s\" --health-interval 1s --health-timeout 2s --health-retries 5"}'
-          - '{"vendor": "ElasticSearch 8", "image": "elasticsearch:8.11.0", "dsn": "http://127.0.0.1:9200/?className=Cake\\ElasticSearch\\Datasource\\Connection&driver=elasticsearch", "options": "--health-cmd \"curl --fail --output /dev/null --silent http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s\" --health-interval 1s --health-timeout 2s --health-retries 5"}'
+          # Disable HTTPS with "options" because the combination of openssl and curl versions breaks with this image (see https://github.com/php/php-src/issues/8369),
+          # and setting it in the service's "env" crashes OpenSearch with "unknown configuration" (maybe just ignore it?!)
+          - '{"vendor": "ElasticSearch 8", "image": "elasticsearch:8.11.0", "dsn": "http://elastic:admin@127.0.0.1:9200/?className=Cake\\ElasticSearch\\Datasource\\Connection&driver=elasticsearch&auth_type=basic", "options": "--env \"xpack.security.http.ssl.enabled=false\" --health-cmd \"curl --fail --output /dev/null --silent --user elastic:admin http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s\" --health-interval 1s --health-timeout 2s --health-retries 5"}'
           - '{"vendor": "ElasticSearch 7", "image": "elasticsearch:7.17.14", "dsn": "http://127.0.0.1:9200/?className=Cake\\ElasticSearch\\Datasource\\Connection&driver=elasticsearch", "options": "--health-cmd \"curl --fail --output /dev/null --silent http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s\" --health-interval 1s --health-timeout 2s --health-retries 5"}'
         include:
           - php: '8.2'
@@ -77,8 +79,11 @@ jobs:
         image: '${{ fromJson(matrix.elastic).image }}'
         env:
           discovery.type: 'single-node'
+          # OpenSearch
           DISABLE_INSTALL_DEMO_CONFIG: 'true'
           DISABLE_SECURITY_PLUGIN: 'true'
+          # ElasticSearch
+          ELASTIC_PASSWORD: 'admin'
         ports:
           - '9200:9200'
           - '9300:9300'
