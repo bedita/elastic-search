@@ -4,11 +4,15 @@ declare(strict_types=1);
 namespace BEdita\ElasticSearch\Adapter;
 
 use BEdita\Core\Search\BaseAdapter;
+use BEdita\ElasticSearch\Model\Document\Search;
+use BEdita\ElasticSearch\Model\Index\AdapterCompatibleInterface;
 use Cake\Database\Connection;
 use Cake\Database\Expression\ComparisonExpression;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\EntityInterface;
+use Cake\Datasource\FactoryLocator;
+use Cake\ElasticSearch\Index;
 use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
@@ -17,11 +21,53 @@ use Cake\Utility\Security;
 use Exception;
 use Psr\Log\LogLevel;
 use RuntimeException;
+use UnexpectedValueException;
 
+/**
+ * ElasticSearch adapter for BEdita search.
+ */
 class ElasticSearchAdapter extends BaseAdapter
 {
     use LocatorAwareTrait;
     use LogTrait;
+
+    protected const MAX_RESULTS = 1000;
+
+    /**
+     * Index instance.
+     *
+     * @var \Cake\ElasticSearch\Index&\BEdita\ElasticSearch\Model\Index\AdapterCompatibleInterface
+     */
+    protected Index&AdapterCompatibleInterface $index;
+
+    /**
+     * Get index instance for search index.
+     *
+     * @return \BEdita\ElasticSearch\Model\Index\AdapterCompatibleInterface&\Cake\ElasticSearch\Index
+     */
+    public function getIndex(): Index&AdapterCompatibleInterface
+    {
+        if (!isset($this->index)) {
+            $index = $this->getConfig('index', 'BEdita/ElasticSearch.Search');
+            if (is_string($index)) {
+                /** @var \Cake\ElasticSearch\Datasource\IndexLocator $locator */
+                $locator = FactoryLocator::get('ElasticSearch');
+                $index = $locator->get($index);
+            }
+            if (!$index instanceof Index || !$index instanceof AdapterCompatibleInterface) {
+                throw new UnexpectedValueException(sprintf(
+                    'Search index must be an instance of %s that implements %s interface, got %s',
+                    Index::class,
+                    AdapterCompatibleInterface::class,
+                    get_debug_type($index),
+                ));
+            }
+
+            $this->index = $index;
+        }
+
+        return $this->index;
+    }
 
     /**
      * @inheritDoc
@@ -38,6 +84,7 @@ class ElasticSearchAdapter extends BaseAdapter
      */
     public function indexResource(EntityInterface $entity, string $operation): void
     {
+        $this->getIndex()->reindex($entity, $operation);
     }
 
     /**
@@ -45,11 +92,17 @@ class ElasticSearchAdapter extends BaseAdapter
      *
      * @param string $text The search text
      * @param array $options The options
-     * @return array
+     * @return array<array{id: string, score: float}>
      */
     protected function buildElasticSearchQuery(string $text, array $options): array
     {
-        return [];
+        return $this->getIndex()
+            ->find('query', ['query' => $text] + $options)
+            ->select(['_id', '_score'])
+            ->limit(static::MAX_RESULTS)
+            ->all()
+            ->map(fn (Search $doc): array => ['id' => $doc->id, 'score' => $doc->score()])
+            ->toList();
     }
 
     /**
@@ -63,7 +116,6 @@ class ElasticSearchAdapter extends BaseAdapter
     protected function buildQuery(Query $query, string $text, array $options): Query
     {
         $results = $this->buildElasticSearchQuery($text, $options);
-
         if (count($results) === 0) {
             // Nothing found. No results should be returned. Add a contradiction to the `WHERE` clause.
             return $query->where(new ComparisonExpression('1', '1', 'integer', '<>'));
@@ -81,11 +133,10 @@ class ElasticSearchAdapter extends BaseAdapter
         return $query
             ->innerJoin(
                 $tempTable->getTable(),
-                // @phpstan-ignore-next-line
-                fn (QueryExpression $exp): QueryExpression => $exp->equalFields(
+                (new QueryExpression())->equalFields(
                     $tempTable->aliasField('id'),
                     $query->getRepository()->aliasField('id'),
-                )
+                ),
             )
             ->orderDesc($tempTable->aliasField('score'));
     }

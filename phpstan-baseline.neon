@@ -1,0 +1,11 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Using nullsafe method call on non\\-nullable type Elastica\\\\Result\\. Use \\-\\> instead\\.$#"
+			count: 1
+			path: src/Model/Document/Search.php
+
+		-
+			message: "#^Access to an undefined property Cake\\\\Datasource\\\\EntityInterface\\:\\:\\$id\\.$#"
+			count: 1
+			path: src/Model/Index/SearchIndex.php
