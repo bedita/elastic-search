@@ -16,13 +16,10 @@ class Search extends Document
      * Returns the score of this document as returned by ElasticSearch after search.
      *
      * @return float|null
+     * @codeCoverageIgnore
      */
     public function score(): float|null
     {
-        if ($this->_result) {
-            return $this->_result->getScore();
-        }
-
-        return null;
+        return $this->_result?->getScore();
     }
 }

@@ -34,7 +34,7 @@ class CreateIndexCommand extends Command
      *
      * @throws \Exception Error loading adapter from registry
      */
-    public function execute(Arguments $args, ConsoleIo $io): ?int
+    public function execute(Arguments $args, ConsoleIo $io): int|null
     {
         $registry = new SearchRegistry();
         $adapters = array_keys((array)Configure::read('Search.adapters'));
