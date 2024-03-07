@@ -116,12 +116,12 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     public function updateProperties(array $properties = []): bool
     {
         if (empty($properties)) {
-            $properties = self::$_properties;
+            $properties = static::$_properties;
         }
 
         $endpoint = new PutMapping();
         $endpoint->setBody(compact('properties'));
-        $esIndex = $this->getConnection()->getIndex();
+        $esIndex = $this->getConnection()->getIndex($this->getName());
         $response = $esIndex->requestEndpoint($endpoint);
         if (!$response->isOk()) {
             Log::error(sprintf(
@@ -142,11 +142,11 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     public function updateAnalysis(array $analysis = []): bool
     {
         if (empty($analysis)) {
-            $analysis = self::$_analysis;
+            $analysis = static::$_analysis;
         }
 
         // Adding new analyzers requires temporarily closing the index
-        $esIndex = $this->getConnection()->getIndex();
+        $esIndex = $this->getConnection()->getIndex($this->getName());
         $response = $esIndex->close();
         if (!$response->isOk()) {
             Log::error(sprintf(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace BEdita\ElasticSearch;
 
 use BEdita\ElasticSearch\Command\CreateIndexCommand;
+use BEdita\ElasticSearch\Command\UpdateIndexCommand;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\PluginApplicationInterface;
@@ -32,6 +33,7 @@ class Plugin extends BasePlugin
     public function console(CommandCollection $commands): CommandCollection
     {
         return parent::console($commands)
-            ->add('elastic:createIndex', CreateIndexCommand::class);
+            ->add('elastic:createIndex', CreateIndexCommand::class)
+            ->add('elastic:updateIndex', UpdateIndexCommand::class);
     }
 }
