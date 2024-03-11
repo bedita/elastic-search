@@ -52,7 +52,7 @@ class ElasticSearchAdapter extends BaseAdapter
             if (is_string($index)) {
                 /** @var \Cake\ElasticSearch\Datasource\IndexLocator $locator */
                 $locator = FactoryLocator::get('ElasticSearch');
-                $index = $locator->get($index);
+                $index = $locator->get($index, (array)$this->getConfig('options'));
             }
             if (!$index instanceof Index || !$index instanceof AdapterCompatibleInterface) {
                 throw new UnexpectedValueException(sprintf(
