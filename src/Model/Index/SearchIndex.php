@@ -213,7 +213,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      */
     protected function prepareData(EntityInterface $entity): array|null
     {
-        return $entity->toArray();
+        return ['id' => (string)$entity->id] + $entity->toArray();
     }
 
     /**
