@@ -114,6 +114,24 @@ class ObjectSearchIndex extends SearchIndex
     }
 
     /**
+     * Prepare data for indexing. This method may be overridden by implementations to customize indexed fields.
+     *
+     * If `null` is returned, entity indexing is skipped (and an entity with such ID is removed
+     * from index if already present).
+     *
+     * @param \Cake\Datasource\EntityInterface $entity Entity to be indexed.
+     * @return array<string, mixed>|null
+     */
+    protected function prepareData(EntityInterface $entity): array|null
+    {
+        if (!$entity instanceof ObjectEntity) {
+            return null;
+        }
+
+        return ['id' => (string)$entity->id] + $entity->extract(array_keys(static::$_properties));
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param \Cake\ElasticSearch\Query $query Query object instance.
