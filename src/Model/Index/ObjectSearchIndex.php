@@ -54,6 +54,7 @@ class ObjectSearchIndex extends SearchIndex
             ->requirePresence('status', 'create')
 
             ->boolean('deleted')
+            ->allowEmptyString('deleted')
 
             ->dateTime('publish_start')
             ->allowEmptyDateTime('publish_start')
