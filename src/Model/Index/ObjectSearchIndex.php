@@ -54,7 +54,6 @@ class ObjectSearchIndex extends SearchIndex
             ->requirePresence('status', 'create')
 
             ->boolean('deleted')
-            ->allowEmptyString('deleted')
 
             ->dateTime('publish_start')
             ->allowEmptyDateTime('publish_start')
@@ -129,7 +128,10 @@ class ObjectSearchIndex extends SearchIndex
             return null;
         }
 
-        return ['id' => (string)$entity->id] + $entity->extract(array_keys(static::$_properties));
+        return [
+            'id' => (string)$entity->id,
+            'deleted' => $entity->deleted ?? false,
+        ] + $entity->extract(array_keys(static::$_properties));
     }
 
     /**
