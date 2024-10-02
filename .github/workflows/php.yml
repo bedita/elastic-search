@@ -14,12 +14,12 @@ on:
 
 jobs:
   cs:
-    uses: bedita/github-workflows/.github/workflows/php-cs.yml@v1
+    uses: bedita/github-workflows/.github/workflows/php-cs.yml@v2
     with:
       php_versions: '["8.2"]'
 
   stan:
-    uses: bedita/github-workflows/.github/workflows/php-stan.yml@v1
+    uses: bedita/github-workflows/.github/workflows/php-stan.yml@v2
     with:
       php_versions: '["8.2"]'
 
@@ -125,16 +125,17 @@ jobs:
         run: 'composer dump-autoload --optimize --no-cache'
 
       - name: 'Run PHPUnit with coverage'
-        run: 'vendor/bin/phpunit --coverage-clover=clover.xml'
+        run: 'vendor/bin/phpunit --coverage-clover=${{ matrix.php }}-${{ strategy.job-index }}-clover.xml'
 
       - name: 'Export coverage results'
-        uses: 'codecov/codecov-action@v3'
+        uses: 'codecov/codecov-action@v4'
         with:
-          files: './clover.xml'
+          token: ${{ secrets.CODECOV_TOKEN }} # required
+          files: '${{ matrix.php }}-${{ strategy.job-index }}-clover.xml'
           env_vars: PHP_VERSION
 
       - name: 'Archive code coverage results'
-        uses: 'actions/upload-artifact@v3'
+        uses: 'actions/upload-artifact@v4'
         with:
-          name: 'PHP ${{ matrix.php }} with ${{ fromJson(matrix.db).vendor }}'
-          path: 'clover.xml'
+          name: 'PHP-${{ matrix.php }}-strategy-job-index-${{ strategy.job-index }}'
+          path: '${{ matrix.php }}-${{ strategy.job-index }}-clover.xml'
