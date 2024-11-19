@@ -43,6 +43,7 @@ class UpdateIndexCommand extends Command
         }
 
         foreach ($adapters as $name) {
+            /** @var array<string, mixed> $config */
             $config = (array)Configure::read(sprintf('Search.adapters.%s', $name));
             if (empty($config)) {
                 $io->warning(sprintf('Missing configuration for adapter "%s", skipping index update', $name));
