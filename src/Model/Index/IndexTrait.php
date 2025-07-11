@@ -54,7 +54,7 @@ trait IndexTrait
      * @param array $options Array of options.
      * @return \Cake\Datasource\EntityInterface|null
      */
-    public function getIfExists(string $primaryKey, array $options = []): EntityInterface|null
+    public function getIfExists(string $primaryKey, array $options = []): ?EntityInterface
     {
         try {
             return $this->get($primaryKey, $options);

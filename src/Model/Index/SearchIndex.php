@@ -67,7 +67,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      *
      * @return string|null
      */
-    protected function getDefaultName(): string|null
+    protected function getDefaultName(): ?string
     {
         $driver = ConnectionManager::get('default')->getDriver();
         if (!$driver instanceof DriverInterface) {
@@ -221,7 +221,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      * @param \Cake\Datasource\EntityInterface $entity Entity to be indexed.
      * @return array<string, mixed>|null
      */
-    protected function prepareData(EntityInterface $entity): array|null
+    protected function prepareData(EntityInterface $entity): ?array
     {
         return ['id' => (string)$entity->id] + $entity->toArray();
     }
@@ -258,7 +258,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     public function findQuery(Query $query, array $options): Query
     {
         return $query->queryMust(
-            fn (QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
+            fn(QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
         );
     }
 }
