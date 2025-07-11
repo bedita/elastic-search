@@ -23,6 +23,10 @@ class UpdateIndexCommand extends Command
     {
         return parent::buildOptionParser($parser)
             ->setDescription('Update ElasticSearch indices for configured adapters.')
+            ->addOption('create', [
+                'help' => 'Create missing indices, otherwise they will be ignored',
+                'boolean' => true,
+            ])
             ->addOption('adapters', [
                 'help' => 'Update indices only for these adapters (comma-separated list).',
                 'required' => false,
@@ -63,6 +67,21 @@ class UpdateIndexCommand extends Command
             }
 
             $index = $adapter->getIndex();
+            if (!$index->indexExists()) {
+                if (!$args->getOption('create')) {
+                    $io->warning(sprintf('Index "%s" for adapter "%s" does not exist', $index->getName(), $name));
+
+                    continue;
+                }
+
+                if (!$index->create()) {
+                    $io->error(sprintf('Error creating missing index "%s" for adapter "%s"', $index->getName(), $name));
+                } else {
+                    $io->success(sprintf('Created missing index "%s" for adapter "%s"', $index->getName(), $name));
+                }
+
+                continue;
+            }
             if (!$index->updateProperties() || !$index->updateAnalysis()) {
                 $io->error(sprintf('Error updating index "%s" for adapter "%s"', $index->getName(), $name));
 

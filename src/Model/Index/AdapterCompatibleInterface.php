@@ -21,6 +21,13 @@ interface AdapterCompatibleInterface
     public function findQuery(Query $query, array $options): Query;
 
     /**
+     * Check if the index exists.
+     *
+     * @return bool
+     */
+    public function indexExists(): bool;
+
+    /**
      * Create the index.
      *
      * @param array $arguments Body for the request to ElasticSearch's API

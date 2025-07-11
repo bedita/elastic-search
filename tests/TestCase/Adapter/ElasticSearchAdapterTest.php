@@ -18,7 +18,7 @@ use ReflectionClass;
 use UnexpectedValueException;
 
 /**
- * {@see BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
+ * {@see \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
  *
  * @coversDefaultClass \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter
  */

@@ -86,6 +86,16 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     /**
      * @inheritDoc
      */
+    public function indexExists(): bool
+    {
+        return $this->getConnection()
+            ->getIndex($this->getName())
+            ->exists();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function create(array $arguments = [], array $options = []): bool
     {
         if (empty(Hash::get($arguments, 'mappings.properties')) && !empty(static::$_properties)) {
