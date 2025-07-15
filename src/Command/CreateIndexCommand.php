@@ -34,7 +34,7 @@ class CreateIndexCommand extends Command
      *
      * @throws \Exception Error loading adapter from registry
      */
-    public function execute(Arguments $args, ConsoleIo $io): int|null
+    public function execute(Arguments $args, ConsoleIo $io): ?int
     {
         $registry = new SearchRegistry();
         $adapters = array_keys((array)Configure::read('Search.adapters'));
@@ -63,6 +63,11 @@ class CreateIndexCommand extends Command
             }
 
             $index = $adapter->getIndex();
+            if ($index->indexExists()) {
+                $io->warning(sprintf('Index "%s" for adapter "%s" already exists, skipping creation', $index->getName(), $name));
+
+                continue;
+            }
             if (!$index->create()) {
                 $io->error(sprintf('Error creating index "%s" for adapter "%s"', $index->getName(), $name));
 

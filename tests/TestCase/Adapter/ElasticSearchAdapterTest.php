@@ -18,7 +18,7 @@ use ReflectionClass;
 use UnexpectedValueException;
 
 /**
- * {@see BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
+ * {@see \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
  *
  * @coversDefaultClass \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter
  */
@@ -137,7 +137,7 @@ class ElasticSearchAdapterTest extends TestCase
         string $expected,
         Query $query,
         string $text,
-        array $options = []
+        array $options = [],
     ): void {
         $adapter = new ElasticSearchAdapter();
         $actual = $adapter->search($query, $text, $options)->find('list', ['valueField' => 'id'])->all()->toList();
@@ -203,7 +203,7 @@ class ElasticSearchAdapterTest extends TestCase
                 'default' => null,
                 'comment' => null,
                 'autoIncrement' => null,
-            ]
+            ],
         );
         static::assertSame(
             $table->getSchema()->getColumn('score'),
@@ -215,7 +215,7 @@ class ElasticSearchAdapterTest extends TestCase
                 'default' => null,
                 'comment' => null,
                 'unsigned' => null,
-            ]
+            ],
         );
     }
 }

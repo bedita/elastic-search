@@ -16,6 +16,7 @@ use Cake\Utility\Inflector;
 use Elastica\Query\AbstractQuery;
 use Elasticsearch\Endpoints\Indices\PutMapping;
 use Elasticsearch\Endpoints\Indices\PutSettings;
+use RuntimeException;
 
 /**
  * Base search index for ElasticSearch.
@@ -67,7 +68,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      *
      * @return string|null
      */
-    protected function getDefaultName(): string|null
+    protected function getDefaultName(): ?string
     {
         $driver = ConnectionManager::get('default')->getDriver();
         if (!$driver instanceof DriverInterface) {
@@ -81,6 +82,16 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
         }
 
         return $prefix . '_' . $suffix;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function indexExists(): bool
+    {
+        return $this->getConnection()
+            ->getIndex($this->getName())
+            ->exists();
     }
 
     /**
@@ -137,52 +148,75 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     }
 
     /**
-     * @inheritDoc
+     * Temporarily close the index to perform operations that require it to be closed.
+     *
+     * @template T
+     * @param callable(): T $callback Callback to execute while the index is closed.
+     * @return T
      */
-    public function updateAnalysis(array $analysis = []): bool
+    protected function withClosedIndex(callable $callback): mixed
     {
-        if (empty($analysis)) {
-            $analysis = static::$_analysis;
-        }
-
-        // Adding new analyzers requires temporarily closing the index
         $esIndex = $this->getConnection()->getIndex($this->getName());
         $response = $esIndex->close();
         if (!$response->isOk()) {
             Log::error(sprintf(
-                'Error closing the index "%s" before updating analysis settings: %s',
+                'Error closing the index "%s": %s',
                 $this->getName(),
                 $response->getErrorMessage(),
             ));
 
-            return false;
+            throw new RuntimeException('Unable to close the index');
         }
 
-        $endpoint = new PutSettings();
-        $endpoint->setBody(compact('analysis'));
-        $response = $esIndex->requestEndpoint($endpoint);
-        if (!$response->isOk()) {
-            Log::error(sprintf(
-                'Error updating index "%s" settings: %s',
-                $this->getName(),
-                $response->getErrorMessage(),
-            ));
+        try {
+            return $callback();
+        } finally {
+            $response = $esIndex->open();
+            if (!$response->isOk()) {
+                Log::error(sprintf(
+                    'Error opening the index "%s": %s',
+                    $this->getName(),
+                    $response->getErrorMessage(),
+                ));
+            }
+        }
+    }
 
-            return false;
+    /**
+     * @inheritDoc
+     */
+    public function updateAnalysis(array $analysis = []): bool
+    {
+        $esIndex = $this->getConnection()->getIndex($this->getName());
+        if (empty($analysis)) {
+            $analysis = static::$_analysis;
         }
 
-        $response = $esIndex->open();
-        if (!$response->isOk()) {
-            Log::error(sprintf(
-                'Error opening the index "%s" after updating analysis settings: %s',
-                $this->getName(),
-                $response->getErrorMessage(),
-            ));
+        return $this->withClosedIndex(function () use ($analysis, $esIndex): bool {
+            if (empty($analysis)) {
+                Log::warning(sprintf(
+                    'No analysis settings provided for index "%s", skipping update.',
+                    $this->getName(),
+                ));
 
-            return false;
-        }
+                return true;
+            }
 
-        return true;
+            $endpoint = new PutSettings();
+            $endpoint->setBody(compact('analysis'));
+            $response = $esIndex->requestEndpoint($endpoint);
+            if (!$response->isOk()) {
+                Log::error(sprintf(
+                    'Error updating index "%s" settings: %s',
+                    $this->getName(),
+                    $response->getErrorMessage(),
+                ));
+
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**
@@ -211,7 +245,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      * @param \Cake\Datasource\EntityInterface $entity Entity to be indexed.
      * @return array<string, mixed>|null
      */
-    protected function prepareData(EntityInterface $entity): array|null
+    protected function prepareData(EntityInterface $entity): ?array
     {
         return ['id' => (string)$entity->id] + $entity->toArray();
     }
@@ -248,7 +282,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     public function findQuery(Query $query, array $options): Query
     {
         return $query->queryMust(
-            fn (QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
+            fn(QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
         );
     }
 }

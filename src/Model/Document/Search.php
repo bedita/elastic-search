@@ -18,7 +18,7 @@ class Search extends Document
      * @return float|null
      * @codeCoverageIgnore
      */
-    public function score(): float|null
+    public function score(): ?float
     {
         return $this->_result?->getScore();
     }

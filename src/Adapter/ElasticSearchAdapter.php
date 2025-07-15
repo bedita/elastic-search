@@ -103,7 +103,7 @@ class ElasticSearchAdapter extends BaseAdapter
             ->select(['_id', '_score'])
             ->limit(static::MAX_RESULTS)
             ->all()
-            ->map(fn (Search $doc): array => ['id' => $doc->id, 'score' => $doc->score()])
+            ->map(fn(Search $doc): array => ['id' => $doc->id, 'score' => $doc->score()])
             ->toList();
     }
 
@@ -172,14 +172,14 @@ class ElasticSearchAdapter extends BaseAdapter
                 [
                     'type' => TableSchema::CONSTRAINT_PRIMARY,
                     'columns' => ['id'],
-                ]
+                ],
             )
             ->addIndex(
                 sprintf('%s_score_idx', str_replace('_', '', $table)),
                 [
                     'type' => TableSchema::INDEX_INDEX,
                     'columns' => ['score'],
-                ]
+                ],
             );
 
         try {

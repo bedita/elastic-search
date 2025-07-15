@@ -13,10 +13,4 @@
     <rule ref="CakePHP">
         <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes" />
     </rule>
-
-    <rule ref="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat">
-        <properties>
-            <property name="shortNullable" value="no"/>
-        </properties>
-    </rule>
 </ruleset>
