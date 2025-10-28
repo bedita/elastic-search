@@ -282,7 +282,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
     public function findQuery(Query $query, array $options): Query
     {
         return $query->queryMust(
-            fn (QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
+            fn(QueryBuilder $builder): AbstractQuery => $builder->simpleQueryString('title', $options['query']),
         );
     }
 }

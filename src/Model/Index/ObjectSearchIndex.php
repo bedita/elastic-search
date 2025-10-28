@@ -150,7 +150,7 @@ class ObjectSearchIndex extends SearchIndex
         return $query
             ->find('available')
             ->queryMust(
-                fn (QueryBuilder $builder): AbstractQuery => $builder
+                fn(QueryBuilder $builder): AbstractQuery => $builder
                     ->simpleQueryString(['title', 'description', 'body'], $options['query']),
             );
     }
@@ -207,7 +207,7 @@ class ObjectSearchIndex extends SearchIndex
         }
 
         return $query->andWhere(
-            fn (QueryBuilder $builder): AbstractQuery => $builder->terms('type', (array)$options['type']),
+            fn(QueryBuilder $builder): AbstractQuery => $builder->terms('type', (array)$options['type']),
         );
     }
 }
