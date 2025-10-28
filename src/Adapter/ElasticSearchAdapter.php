@@ -103,7 +103,7 @@ class ElasticSearchAdapter extends BaseAdapter
             ->select(['_id', '_score'])
             ->limit(static::MAX_RESULTS)
             ->all()
-            ->map(fn(Search $doc): array => ['id' => $doc->id, 'score' => $doc->score()])
+            ->map(fn (Search $doc): array => ['id' => $doc->id, 'score' => $doc->score()])
             ->toList();
     }
 
