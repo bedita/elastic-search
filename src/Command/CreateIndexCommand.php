@@ -64,9 +64,7 @@ class CreateIndexCommand extends Command
 
             $index = $adapter->getIndex();
             if ($index->indexExists()) {
-                $io->warning(
-                    sprintf('Index "%s" for adapter "%s" already exists, skipping creation', $index->getName(), $name),
-                );
+                $io->warning(sprintf('Index "%s" for adapter "%s" already exists, skipping creation', $index->getName(), $name)); // phpcs:ignore
 
                 continue;
             }
