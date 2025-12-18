@@ -14,30 +14,23 @@ use Cake\ElasticSearch\TestSuite\TestCase;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Exception;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use UnexpectedValueException;
 
 /**
  * {@see \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
- *
- * @coversDefaultClass \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter
  */
+#[CoversClass(ElasticSearchAdapter::class)]
 class ElasticSearchAdapterTest extends TestCase
 {
-    /**
-     * @inheritDoc
-     */
-    protected $fixtures = [
-//        'plugin.BEdita/Core.ObjectTypes',
-//        'plugin.BEdita/Core.Objects',
-    ];
-
     /**
      * Data provider for {@see ElasticSearchAdapterTest::testGetIndex()} test case.
      *
      * @return array<string, array{\Cake\ElasticSearch\Index|Exception, string|\Cake\ElasticSearch\Index}>
      */
-    public function getIndexProvider(): array
+    public static function getIndexProvider(): array
     {
         /** @var \Cake\ElasticSearch\Datasource\IndexLocator $locator */
         $locator = FactoryLocator::get('ElasticSearch');
@@ -61,9 +54,8 @@ class ElasticSearchAdapterTest extends TestCase
      * @param \Cake\ElasticSearch\Index|Exception $expected Expected outcome.
      * @param string|\Cake\ElasticSearch\Index $index Index configuration.
      * @return void
-     * @dataProvider getIndexProvider()
-     * @covers ::getIndex()
      */
+    #[DataProvider('getIndexProvider')]
     public function testGetIndex(Index|Exception $expected, string|Index $index): void
     {
         if ($expected instanceof Exception) {
@@ -86,7 +78,6 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `buildElasticSearchQuery` method
      *
      * @return void
-     * @covers ::buildElasticSearchQuery()
      */
     public function testBuildElasticSearchQuery(): void
     {
@@ -128,11 +119,8 @@ class ElasticSearchAdapterTest extends TestCase
      * @param string $text
      * @param array $options
      * @return void
-     * @covers ::search()
-     * @covers ::buildQuery()
-     * @covers ::buildElasticSearchQuery()
-     * @dataProvider searchProvider()
      */
+    #[DataProvider('searchProvider')]
     public function testSearch(
         string $expected,
         Query $query,
@@ -149,10 +137,6 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `search` with elastic search
      *
      * @return void
-     * @covers ::search()
-     * @covers ::buildQuery()
-     * @covers ::buildElasticSearchQuery()
-     * @covers ::createTempTable()
      */
     public function testSearchElastic(): void
     {
@@ -176,7 +160,6 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `createTempTable` method
      *
      * @return void
-     * @covers ::createTempTable()
      */
     public function testCreateTempTable(): void
     {
