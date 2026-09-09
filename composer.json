@@ -31,7 +31,8 @@
         "phpunit/phpunit": "^12.1",
         "cakephp/cakephp-codesniffer": "^5.3",
         "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0"
+        "phpstan/phpstan-phpunit": "^2.0",
+        "cakephp/authentication": "^3.3"
     },
     "autoload": {
         "psr-4": {
