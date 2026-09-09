@@ -11,7 +11,7 @@ use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\FactoryLocator;
 use Cake\ElasticSearch\Index;
 use Cake\ElasticSearch\TestSuite\TestCase;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -83,7 +83,6 @@ class ElasticSearchAdapterTest extends TestCase
     {
         $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
         $method = $reflectionClass->getMethod('buildElasticSearchQuery');
-        $method->setAccessible(true);
         $text = 'searchme';
         $options = [];
         $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
@@ -93,18 +92,16 @@ class ElasticSearchAdapterTest extends TestCase
     }
 
     /**
-     * Test `buildElasticSearchQuery` method
+     * Data provider for {@see ElasticSearchAdapterTest::testSearch()} test case.
      *
      * @return array
      */
-    public function searchProvider(): array
+    public static function searchProvider(): array
     {
-        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
-
         return [
             'query' => [
-                Query::class,
-                $query,
+                SelectQuery::class,
+                ['id' => 1],
                 'text',
                 [],
             ],
@@ -115,7 +112,7 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `search` method
      *
      * @param string $expected
-     * @param Query $query
+     * @param array $conditions
      * @param string $text
      * @param array $options
      * @return void
@@ -123,12 +120,13 @@ class ElasticSearchAdapterTest extends TestCase
     #[DataProvider('searchProvider')]
     public function testSearch(
         string $expected,
-        Query $query,
+        array $conditions,
         string $text,
         array $options = [],
     ): void {
+        $query = $this->fetchTable('objects')->find()->where($conditions);
         $adapter = new ElasticSearchAdapter();
-        $actual = $adapter->search($query, $text, $options)->find('list', ['valueField' => 'id'])->all()->toList();
+        $actual = $adapter->search($query, $text, $options)->find('list', valueField: 'id')->all()->toList();
         $expected = [];
         static::assertSame($expected, $actual);
     }
@@ -152,7 +150,7 @@ class ElasticSearchAdapterTest extends TestCase
         $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
         $text = 'searchme';
         $actual = $adapter->search($query, $text, []);
-        static::assertInstanceOf(Query::class, $actual);
+        static::assertInstanceOf(SelectQuery::class, $actual);
         static::markTestIncomplete('This test has not been implemented yet.');
     }
 
@@ -180,24 +178,25 @@ class ElasticSearchAdapterTest extends TestCase
             [
                 'type' => 'integer',
                 'length' => 11,
-                'unsigned' => true,
                 'null' => false,
-                'precision' => null,
                 'default' => null,
+                'generated' => null,
+                'unsigned' => true,
+                'precision' => null,
                 'comment' => null,
-                'autoIncrement' => null,
+                'autoIncrement' => false,
             ],
         );
         static::assertSame(
             $table->getSchema()->getColumn('score'),
             [
                 'type' => 'float',
-                'null' => false,
                 'length' => null,
-                'precision' => null,
+                'null' => false,
                 'default' => null,
-                'comment' => null,
                 'unsigned' => null,
+                'precision' => null,
+                'comment' => null,
             ],
         );
     }

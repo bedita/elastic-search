@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace BEdita\ElasticSearch\Model\Index;
 
-use Cake\Database\DriverInterface;
+use Cake\Database\Connection;
 use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Index;
@@ -13,9 +13,8 @@ use Cake\Log\Log;
 use Cake\Log\LogTrait;
 use Cake\Utility\Hash;
 use Cake\Utility\Inflector;
+use Elastica\Mapping;
 use Elastica\Query\AbstractQuery;
-use Elasticsearch\Endpoints\Indices\PutMapping;
-use Elasticsearch\Endpoints\Indices\PutSettings;
 use RuntimeException;
 
 /**
@@ -53,7 +52,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      */
     public function getName(): string
     {
-        if ($this->_name === null) {
+        if (!isset($this->_name)) {
             $defaultName = $this->getDefaultName();
             if ($defaultName !== null) {
                 $this->_name = $defaultName;
@@ -70,12 +69,12 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      */
     protected function getDefaultName(): ?string
     {
-        $driver = ConnectionManager::get('default')->getDriver();
-        if (!$driver instanceof DriverInterface) {
+        $connection = ConnectionManager::get('default');
+        if (!$connection instanceof Connection) {
             return null;
         }
 
-        $prefix = $driver->schema();
+        $prefix = $connection->getDriver()->schema();
         $suffix = Inflector::underscore($this->getAlias());
         if (empty($prefix) || empty($suffix)) {
             return null;
@@ -130,10 +129,8 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
             $properties = static::$_properties;
         }
 
-        $endpoint = new PutMapping();
-        $endpoint->setBody(compact('properties'));
         $esIndex = $this->getConnection()->getIndex($this->getName());
-        $response = $esIndex->requestEndpoint($endpoint);
+        $response = $esIndex->setMapping(new Mapping($properties));
         if (!$response->isOk()) {
             Log::error(sprintf(
                 'Error updating index "%s" mappings: %s',
@@ -202,9 +199,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
                 return true;
             }
 
-            $endpoint = new PutSettings();
-            $endpoint->setBody(compact('analysis'));
-            $response = $esIndex->requestEndpoint($endpoint);
+            $response = $esIndex->setSettings(compact('analysis'));
             if (!$response->isOk()) {
                 Log::error(sprintf(
                     'Error updating index "%s" settings: %s',

@@ -1,7 +1,7 @@
 includes:
     - phpstan-baseline.neon
 parameters:
-  phpVersion: 80212
+  phpVersion: 80300
   paths:
     - src
     - tests
