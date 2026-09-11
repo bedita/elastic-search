@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace BEdita\ElasticSearch\Model\Index;
 
-use Cake\Database\Connection;
+use Cake\Database\Driver;
 use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Index;
@@ -69,12 +69,12 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      */
     protected function getDefaultName(): ?string
     {
-        $connection = ConnectionManager::get('default');
-        if (!$connection instanceof Connection) {
+        $driver = ConnectionManager::get('default')->getDriver();
+        if (!$driver instanceof Driver) {
             return null;
         }
 
-        $prefix = $connection->getDriver()->schema();
+        $prefix = $driver->schema();
         $suffix = Inflector::underscore($this->getAlias());
         if (empty($prefix) || empty($suffix)) {
             return null;

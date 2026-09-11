@@ -99,9 +99,7 @@ class ElasticSearchAdapter extends BaseAdapter
     protected function buildElasticSearchQuery(string $text, array $options): array
     {
         $index = $this->getIndex();
-        // `Index::find()` cannot be used with an option named `query`, since it would collide with the `$query`
-        // argument of `Index::callFinder()`: mimic its behaviour by applying options to a new query
-        // and calling the finder method directly.
+        // `Index::find()` is bypassed: its `query` option would collide with `Index::callFinder()` `$query` argument.
         $query = $index->query()->applyOptions(['query' => $text] + $options);
 
         return $index->findQuery($query, ['query' => $text] + $query->getOptions())

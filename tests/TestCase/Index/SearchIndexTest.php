@@ -44,7 +44,7 @@ class SearchIndexTest extends TestCase
      *
      * @return void
      */
-    public function testCreate(): void
+    public function testCreate()
     {
         $result = $this->index->create();
         static::assertTrue($result);
@@ -55,7 +55,7 @@ class SearchIndexTest extends TestCase
      *
      * @return void
      */
-    public function testIndexExists(): void
+    public function testIndexExists()
     {
         static::assertFalse($this->index->indexExists());
         static::assertTrue($this->index->create());

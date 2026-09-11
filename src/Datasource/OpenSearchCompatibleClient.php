@@ -9,29 +9,20 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * PSR-18 HTTP client decorator that lets the Elasticsearch PHP client talk to an OpenSearch server.
+ * PSR-18 client decorator that lets the Elasticsearch client talk to OpenSearch.
  *
- * The Elasticsearch client sends `Content-Type` and `Accept` headers using the API compatibility
- * media type (e.g. `application/vnd.elasticsearch+json; compatible-with=9`), which OpenSearch rejects
- * with a `406 Not Acceptable` response: such media types are rewritten to their plain counterparts
- * (e.g. `application/json`). The client also requires every successful response to carry the
- * `X-Elastic-Product: Elasticsearch` header, which OpenSearch does not send: the header is added
- * to responses that lack it.
+ * OpenSearch answers `406` to the API compatibility media type (`application/vnd.elasticsearch+json;
+ * compatible-with=9`) and does not send the `X-Elastic-Product` header the client checks for.
  *
  * @see \Elastic\Elasticsearch\Client::API_COMPATIBILITY_HEADER
  * @see \Elastic\Elasticsearch\Traits\ProductCheckTrait::productCheck()
  */
 class OpenSearchCompatibleClient implements ClientInterface
 {
-    /**
-     * Regular expression matching the API compatibility media type sent by the Elasticsearch client.
-     */
     protected const COMPATIBILITY_MEDIA_TYPE =
         '#^(application|text)/vnd\.elasticsearch\+([^;\s]+)\s*;\s*compatible-with=\d+$#i';
 
     /**
-     * Request headers whose media types must be rewritten.
-     *
      * @var array<string>
      */
     protected const REWRITE_HEADERS = ['Content-Type', 'Accept'];
@@ -75,10 +66,10 @@ class OpenSearchCompatibleClient implements ClientInterface
     }
 
     /**
-     * Rewrite Elasticsearch API compatibility media types to their plain counterparts,
-     * e.g. `application/vnd.elasticsearch+json; compatible-with=9` becomes `application/json`.
+     * Rewrite compatibility media types, e.g. `application/vnd.elasticsearch+json; compatible-with=9`
+     * becomes `application/json`.
      *
-     * @param string $value Header value, possibly listing multiple comma-separated media types.
+     * @param string $value Header value, possibly with comma-separated media types.
      * @return string
      */
     public static function rewriteMediaTypes(string $value): string

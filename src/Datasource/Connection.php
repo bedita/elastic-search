@@ -12,18 +12,12 @@ use Psr\Http\Client\ClientInterface;
 /**
  * ElasticSearch connection with opt-in OpenSearch compatibility.
  *
- * When the connection is configured with `driver` set to `opensearch` (or with `opensearch` set to `true`),
- * the HTTP client used by Elastica is decorated with {@see \BEdita\ElasticSearch\Datasource\OpenSearchCompatibleClient}
- * so that the Elasticsearch PHP client can talk to an OpenSearch server. With any other configuration
- * this connection behaves exactly like {@see \Cake\ElasticSearch\Datasource\Connection}.
- *
- * Example DSN: `http://127.0.0.1:9200/?className=BEdita\ElasticSearch\Datasource\Connection&driver=opensearch`
+ * With `driver` set to `opensearch` the HTTP client is decorated with {@see \BEdita\ElasticSearch\Datasource\OpenSearchCompatibleClient},
+ * otherwise this behaves like {@see \Cake\ElasticSearch\Datasource\Connection}.
+ * DSN: `http://127.0.0.1:9200/?className=BEdita\ElasticSearch\Datasource\Connection&driver=opensearch`
  */
 class Connection extends ElasticSearchConnection
 {
-    /**
-     * Driver name enabling OpenSearch compatibility.
-     */
     public const DRIVER_OPENSEARCH = 'opensearch';
 
     /**
@@ -39,7 +33,7 @@ class Connection extends ElasticSearchConnection
     }
 
     /**
-     * Check whether OpenSearch compatibility is enabled by the connection configuration.
+     * Check whether OpenSearch compatibility is enabled.
      *
      * @param array $config Connection configuration.
      * @return bool
@@ -50,11 +44,9 @@ class Connection extends ElasticSearchConnection
     }
 
     /**
-     * Decorate the HTTP client used by Elastica with {@see \BEdita\ElasticSearch\Datasource\OpenSearchCompatibleClient}.
+     * Decorate the HTTP client used by Elastica.
      *
-     * The HTTP client is obtained the same way Elastica does (`transport_config.http_client`, or PSR-18 discovery
-     * with a fallback to the built-in cURL client). Since Elastica is not able to apply `http_client_config` and
-     * `http_client_options` to the decorator, those are applied to the inner client here, before decorating it.
+     * Client options are applied here, since Elastica cannot apply them to the decorator.
      *
      * @param array $config Connection configuration.
      * @return array Updated connection configuration.
@@ -86,13 +78,13 @@ class Connection extends ElasticSearchConnection
     }
 
     /**
-     * Apply HTTP client configuration and options to a client, the same way Elastica does.
+     * Apply HTTP client configuration and options, the same way Elastica does.
      *
      * @param \Psr\Http\Client\ClientInterface $client HTTP client.
-     * @param array $config HTTP client configuration (`transport_config.http_client_config`).
-     * @param array $options HTTP client options (`transport_config.http_client_options`).
+     * @param array $config HTTP client configuration.
+     * @param array $options HTTP client options.
      * @return \Psr\Http\Client\ClientInterface
-     * @throws \Elastic\Elasticsearch\Exception\HttpClientException If the HTTP client does not support custom options.
+     * @throws \Elastic\Elasticsearch\Exception\HttpClientException If custom options are unsupported.
      * @see \Elastica\Client::setTransportClientOptions()
      */
     protected static function applyHttpClientOptions(

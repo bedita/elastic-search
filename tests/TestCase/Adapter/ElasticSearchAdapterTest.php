@@ -83,6 +83,7 @@ class ElasticSearchAdapterTest extends TestCase
     {
         $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
         $method = $reflectionClass->getMethod('buildElasticSearchQuery');
+        $method->setAccessible(true);
         $text = 'searchme';
         $options = [];
         $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
@@ -92,7 +93,7 @@ class ElasticSearchAdapterTest extends TestCase
     }
 
     /**
-     * Data provider for {@see ElasticSearchAdapterTest::testSearch()} test case.
+     * Test `buildElasticSearchQuery` method
      *
      * @return array
      */

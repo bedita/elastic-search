@@ -4,12 +4,9 @@ declare(strict_types=1);
 namespace BEdita\ElasticSearch\Model\Index;
 
 use Cake\Datasource\EntityInterface;
-use Cake\ElasticSearch\Datasource\Connection;
 use Cake\ORM\Exception\PersistenceFailedException;
-use Closure;
 use Elastica\Document;
 use Elastica\Exception\NotFoundException;
-use Psr\SimpleCache\CacheInterface;
 
 trait IndexTrait
 {
@@ -17,26 +14,18 @@ trait IndexTrait
      * Returns the ElasticSearch connection instance for this index.
      *
      * @return \Cake\ElasticSearch\Datasource\Connection
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
      */
-    abstract public function getConnection(): Connection;
+    abstract public function getConnection();
 
     /**
      * Retrieve a document from the index.
      *
-     * @param mixed $primaryKey Document ID.
-     * @param array|string $finder Array of options, or finder name.
-     * @param \Psr\SimpleCache\CacheInterface|string|null $cache Caching results is unsupported.
-     * @param \Closure|string|null $cacheKey Caching results is unsupported.
-     * @param mixed ...$args Additional arguments.
+     * @param string $primaryKey Document ID.
+     * @param array $options Array of options.
      * @return \Cake\Datasource\EntityInterface
      */
-    abstract public function get(
-        mixed $primaryKey,
-        array|string $finder = 'all',
-        CacheInterface|string|null $cache = null,
-        Closure|string|null $cacheKey = null,
-        mixed ...$args,
-    ): EntityInterface;
+    abstract public function get(string $primaryKey, array $options = []): EntityInterface;
 
     /**
      * Persist a document to the index.
@@ -44,8 +33,9 @@ trait IndexTrait
      * @param \Cake\Datasource\EntityInterface $entity Document.
      * @param array $options Array of options.
      * @return \Cake\Datasource\EntityInterface|false
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
      */
-    abstract public function save(EntityInterface $entity, array $options = []): EntityInterface|false;
+    abstract public function save(EntityInterface $entity, array $options);
 
     /**
      * Delete a document from the index.
@@ -54,7 +44,7 @@ trait IndexTrait
      * @param array $options Array of options.
      * @return bool
      */
-    abstract public function delete(EntityInterface $entity, array $options = []): bool;
+    abstract public function delete(EntityInterface $entity, array $options): bool;
 
     /**
      * Retrieve a document from the index if exists, or `null` on failure.
