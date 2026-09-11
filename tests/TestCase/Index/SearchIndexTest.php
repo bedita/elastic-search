@@ -6,12 +6,12 @@ namespace BEdita\ElasticSearch\Test\TestCase\Index;
 use BEdita\ElasticSearch\Model\Index\SearchIndex;
 use Cake\Datasource\ConnectionManager;
 use Cake\ElasticSearch\TestSuite\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * {@see \BEdita\ElasticSearch\Model\Index\SearchIndex} Test Case
- *
- * @coversDefaultClass \BEdita\ElasticSearch\Model\Index\SearchIndex
  */
+#[CoversClass(SearchIndex::class)]
 class SearchIndexTest extends TestCase
 {
     protected SearchIndex $index;
@@ -43,7 +43,6 @@ class SearchIndexTest extends TestCase
      * Test `create` method.
      *
      * @return void
-     * @covers ::create()
      */
     public function testCreate()
     {
@@ -55,8 +54,6 @@ class SearchIndexTest extends TestCase
      * Test `indexExists` method.
      *
      * @return void
-     * @covers ::indexExists()
-     * @covers ::create()
      */
     public function testIndexExists()
     {

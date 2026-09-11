@@ -15,7 +15,7 @@ use Cake\Datasource\FactoryLocator;
 use Cake\ElasticSearch\Index;
 use Cake\Log\LogTrait;
 use Cake\ORM\Locator\LocatorAwareTrait;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Cake\Utility\Security;
 use Exception;
@@ -74,7 +74,7 @@ class ElasticSearchAdapter extends BaseAdapter
     /**
      * @inheritDoc
      */
-    public function search(Query $query, string $text, array $options = []): Query
+    public function search(SelectQuery $query, string $text, array $options = []): SelectQuery
     {
         return $this->buildQuery($query, $text, $options);
     }
@@ -98,8 +98,11 @@ class ElasticSearchAdapter extends BaseAdapter
      */
     protected function buildElasticSearchQuery(string $text, array $options): array
     {
-        return $this->getIndex()
-            ->find('query', ['query' => $text] + $options)
+        $index = $this->getIndex();
+        // `Index::find()` is bypassed: its `query` option would collide with `Index::callFinder()` `$query` argument.
+        $query = $index->query()->applyOptions(['query' => $text] + $options);
+
+        return $index->findQuery($query, ['query' => $text] + $query->getOptions())
             ->select(['_id', '_score'])
             ->limit(static::MAX_RESULTS)
             ->all()
@@ -110,12 +113,12 @@ class ElasticSearchAdapter extends BaseAdapter
     /**
      * Build query and return it
      *
-     * @param \Cake\ORM\Query $query The query
+     * @param \Cake\ORM\Query\SelectQuery $query The query
      * @param string $text The search text
      * @param array $options The options
-     * @return \Cake\ORM\Query
+     * @return \Cake\ORM\Query\SelectQuery
      */
-    protected function buildQuery(Query $query, string $text, array $options): Query
+    protected function buildQuery(SelectQuery $query, string $text, array $options): SelectQuery
     {
         $results = $this->buildElasticSearchQuery($text, $options);
         if (count($results) === 0) {
@@ -125,7 +128,7 @@ class ElasticSearchAdapter extends BaseAdapter
 
         // Prepare temporary table with `id` and `score` from ElasticSearch results.
         $tempTable = $this->createTempTable($query->getConnection());
-        $insertQuery = $tempTable->query()->insert(['id', 'score']);
+        $insertQuery = $tempTable->insertQuery()->insert(['id', 'score']);
         foreach ($results as $row) {
             $insertQuery = $insertQuery->values($row);
         }
@@ -140,7 +143,7 @@ class ElasticSearchAdapter extends BaseAdapter
                     $query->getRepository()->aliasField('id'),
                 ),
             )
-            ->orderDesc($tempTable->aliasField('score'));
+            ->orderByDesc($tempTable->aliasField('score'));
     }
 
     /**

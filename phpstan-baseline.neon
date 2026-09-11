@@ -4,9 +4,19 @@ parameters:
 			identifier: missingType.iterableValue
 
 		-
-			message: "#^Using nullsafe method call on non\\-nullable type Elastica\\\\Result\\. Use \\-\\> instead\\.$#"
+			identifier: missingType.generics
+
+		-
+			message: '#^Method BEdita\\ElasticSearch\\Adapter\\ElasticSearchAdapter\:\:buildElasticSearchQuery\(\) should return array\<array\{id\: string, score\: float\}\> but returns array\<int, mixed\>\.$#'
+			identifier: return.type
 			count: 1
-			path: src/Model/Document/Search.php
+			path: src/Adapter/ElasticSearchAdapter.php
+
+		-
+			message: '#^Named argument type for variadic parameter \.\.\.\$args of method Cake\\ElasticSearch\\Query\<array\|Cake\\ElasticSearch\\Document\>\:\:find\(\) expects array, array\<string\>\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Model/Index/ObjectSearchIndex.php
 
 		-
 			message: "#^Access to an undefined property Cake\\\\Datasource\\\\EntityInterface\\:\\:\\$id\\.$#"

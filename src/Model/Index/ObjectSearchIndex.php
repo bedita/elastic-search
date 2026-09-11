@@ -8,11 +8,11 @@ use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Query;
 use Cake\ElasticSearch\QueryBuilder;
-use Cake\I18n\FrozenTime;
+use Cake\I18n\DateTime;
 use Cake\Log\Log;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\Validation\Validator;
-use Elastica\Exception\ResponseException;
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Query\AbstractQuery;
 use InvalidArgumentException;
 
@@ -96,9 +96,10 @@ class ObjectSearchIndex extends SearchIndex
                     if (!$this->set($id, 'deleted', $entity->deleted)) {
                         throw new PersistenceFailedException($this->get($id), ['set']);
                     }
-                } catch (ResponseException $e) {
-                    $fullError = (array)$e->getResponse()->getFullError();
-                    if ($fullError['type'] !== 'document_missing_exception') {
+                } catch (ClientResponseException $e) {
+                    $body = (array)json_decode((string)$e->getResponse()->getBody(), true);
+                    $fullError = (array)($body['error'] ?? []);
+                    if (($fullError['type'] ?? null) !== 'document_missing_exception') {
                         throw $e;
                     }
 
@@ -144,7 +145,7 @@ class ObjectSearchIndex extends SearchIndex
     public function findQuery(Query $query, array $options): Query
     {
         if (isset($options['type'])) {
-            $query = $query->find('type', ['type' => $options['type']]);
+            $query = $query->find('type', type: $options['type']);
         }
 
         return $query
@@ -179,7 +180,7 @@ class ObjectSearchIndex extends SearchIndex
 
             // Filter by publication date.
             if ((bool)Configure::read('Publish.checkDate', false)) {
-                $now = FrozenTime::now();
+                $now = DateTime::now();
 
                 $conditions[] = $builder
                     ->or($builder->not($builder->exists('publish_start')), $builder->lte('publish_start', $now))

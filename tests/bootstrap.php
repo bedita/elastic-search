@@ -2,18 +2,20 @@
 declare(strict_types=1);
 
 use BEdita\Core\ORM\Locator\TableLocator;
+use BEdita\ElasticSearch\Datasource\Connection as ElasticConnection;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Sqlite;
 use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\FactoryLocator;
-use Cake\ElasticSearch\Datasource\Connection as ElasticConnection;
 use Cake\ElasticSearch\Datasource\IndexLocator;
 use Cake\ElasticSearch\TestSuite\Fixture\MappingGenerator;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Security;
+use Elastic\Elasticsearch\Transport\RequestOptions;
 use Migrations\TestSuite\Migrator;
+use function Cake\Core\env;
 
 $findRoot = function ($root) {
     do {
@@ -31,6 +33,7 @@ chdir($root);
 
 require_once 'vendor/autoload.php';
 require_once 'vendor/cakephp/cakephp/tests/bootstrap.php';
+require_once 'vendor/cakephp/cakephp/src/functions.php';
 
 Configure::write('debug', true);
 Cache::drop('_bedita_object_types_');
@@ -66,10 +69,12 @@ ConnectionManager::setConfig('test_elastic', [
     'host' => '127.0.0.1',
     'port' => 9200,
 
-    'curl' => [
-        // Trust any TLS certificate ElasticSearch/OpenSearch may present.
-        // This is INSECURE but for unit test purposes should be ok.
-        CURLOPT_SSL_VERIFYPEER => false,
+    'transport_config' => [
+        'http_client_config' => [
+            // Trust any TLS certificate ElasticSearch/OpenSearch may present.
+            // This is INSECURE but for unit test purposes should be ok.
+            RequestOptions::SSL_VERIFY => false,
+        ],
     ],
 
     'url' => env('es_dsn'),
@@ -84,7 +89,9 @@ Security::setSalt(str_pad('TEST SECURITY SALT', 32, '\0'));
 
 (new MappingGenerator('./tests/mappings.php', 'test_elastic'))->reload();
 
-FactoryLocator::add('ElasticSearch', new IndexLocator());
+$indexLocator = new IndexLocator();
+FactoryLocator::add('Elastic', $indexLocator);
+FactoryLocator::add('ElasticSearch', $indexLocator);
 
 // clear all before running tests
 TableRegistry::setTableLocator(new TableLocator());
