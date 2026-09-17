@@ -60,7 +60,17 @@ class OpenSearchCompatibleClientTest extends TestCase
                 'text/plain,application/json',
                 'text/vnd.elasticsearch+plain; compatible-with=9, application/vnd.elasticsearch+json; compatible-with=9',
             ],
+            'charset' => [
+                'application/json; charset=UTF-8',
+                'application/vnd.elasticsearch+json; compatible-with=9; charset=UTF-8',
+            ],
+            'charset first' => [
+                'application/json; charset=UTF-8',
+                'application/vnd.elasticsearch+json; charset=UTF-8; compatible-with=9',
+            ],
+            'no compatibility parameter' => ['application/json', 'application/vnd.elasticsearch+json'],
             'plain' => ['application/json', 'application/json'],
+            'plain charset' => ['application/json; charset=UTF-8', 'application/json; charset=UTF-8'],
             'plain multiple' => ['text/plain,application/json', 'text/plain,application/json'],
             'other vendor' => ['application/vnd.mapbox-vector-tile', 'application/vnd.mapbox-vector-tile'],
             'empty' => ['', ''],

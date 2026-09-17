@@ -19,8 +19,9 @@ use Psr\Http\Message\ResponseInterface;
  */
 class OpenSearchCompatibleClient implements ClientInterface
 {
-    protected const COMPATIBILITY_MEDIA_TYPE =
-        '#^(application|text)/vnd\.elasticsearch\+([^;\s]+)\s*;\s*compatible-with=\d+$#i';
+    protected const COMPATIBILITY_MEDIA_TYPE = '#^(application|text)/vnd\.elasticsearch\+([^;\s]+)#i';
+
+    protected const COMPATIBILITY_PARAMETER = '#\s*;\s*compatible-with=\d+#i';
 
     /**
      * @var array<string>
@@ -69,6 +70,9 @@ class OpenSearchCompatibleClient implements ClientInterface
      * Rewrite compatibility media types, e.g. `application/vnd.elasticsearch+json; compatible-with=9`
      * becomes `application/json`.
      *
+     * The `compatible-with` parameter is dropped wherever it occurs, so that any other parameter is
+     * preserved regardless of the order the server emitted them in.
+     *
      * @param string $value Header value, possibly with comma-separated media types.
      * @return string
      */
@@ -78,7 +82,7 @@ class OpenSearchCompatibleClient implements ClientInterface
             fn(string $mediaType): string => (string)preg_replace(
                 static::COMPATIBILITY_MEDIA_TYPE,
                 '$1/$2',
-                trim($mediaType),
+                (string)preg_replace(static::COMPATIBILITY_PARAMETER, '', trim($mediaType)),
             ),
             explode(',', $value),
         );
