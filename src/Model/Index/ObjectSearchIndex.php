@@ -145,7 +145,10 @@ class ObjectSearchIndex extends SearchIndex
     public function findQuery(Query $query, array $options): Query
     {
         if (isset($options['type'])) {
-            $query = $query->find('type', type: $options['type']);
+            // `Index::callFinder()` reserves `type` as a parameter name, so the finder cannot be
+            // dispatched via `find()`; `applyOptions()` does what `callFinder()` would have done.
+            $query->applyOptions(['type' => $options['type']]);
+            $query = $this->findType($query, $options);
         }
 
         return $query
