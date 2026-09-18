@@ -5,18 +5,19 @@ filter:
     - 'src/*'
   dependency_paths:
     - 'vendor/*'
+  excluded_paths:
+    - 'vendor/*'
+    - 'tests/*'
 
 build:
   image: default-jammy
   environment:
-    node: v18
+    node: v22
   nodes:
     analysis:
       environment:
         php:
-          version: 8.2
-          pecl_extensions:
-            - zip
+          version: 8.3.16
       tests:
         override:
           - php-scrutinizer-run
