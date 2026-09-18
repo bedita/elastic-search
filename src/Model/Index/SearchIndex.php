@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace BEdita\ElasticSearch\Model\Index;
 
-use Cake\Database\Driver;
-use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Index;
 use Cake\ElasticSearch\Query;
@@ -12,7 +10,6 @@ use Cake\ElasticSearch\QueryBuilder;
 use Cake\Log\Log;
 use Cake\Log\LogTrait;
 use Cake\Utility\Hash;
-use Cake\Utility\Inflector;
 use Elastica\Mapping;
 use Elastica\Query\AbstractQuery;
 use RuntimeException;
@@ -42,46 +39,6 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/configure-text-analysis.html
      */
     protected static array $_analysis = [];
-
-    /**
-     * Returns the index name.
-     *
-     * If it isn't set, it is constructed from the default collection schema and the alias for the index.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        if (!isset($this->_name)) {
-            $defaultName = $this->getDefaultName();
-            if ($defaultName !== null) {
-                $this->_name = $defaultName;
-            }
-        }
-
-        return parent::getName();
-    }
-
-    /**
-     * Returns the default index name, constructed from the default collection schema and the alias for the index.
-     *
-     * @return string|null
-     */
-    protected function getDefaultName(): ?string
-    {
-        $driver = ConnectionManager::get('default')->getDriver();
-        if (!$driver instanceof Driver) {
-            return null;
-        }
-
-        $prefix = $driver->schema();
-        $suffix = Inflector::underscore($this->getAlias());
-        if (empty($prefix) || empty($suffix)) {
-            return null;
-        }
-
-        return $prefix . '_' . $suffix;
-    }
 
     /**
      * @inheritDoc

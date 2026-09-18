@@ -18,7 +18,6 @@ use Cake\TestSuite\Fixture\TruncateStrategy;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use ReflectionClass;
 use UnexpectedValueException;
 
 /**
@@ -33,6 +32,7 @@ class ElasticSearchAdapterTest extends TestCase
     protected array $fixtures = [
         'plugin.BEdita/ElasticSearch.ObjectTypes',
         'plugin.BEdita/ElasticSearch.Objects',
+        'plugin.BEdita/ElasticSearch.Search',
     ];
 
     /**
@@ -101,15 +101,19 @@ class ElasticSearchAdapterTest extends TestCase
      */
     public function testBuildElasticSearchQuery(): void
     {
-        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
-        $method = $reflectionClass->getMethod('buildElasticSearchQuery');
-        $method->setAccessible(true);
-        $text = 'searchme';
-        $options = [];
-        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
-        $expected = [];
-        static::assertEquals($expected, $actual);
-        static::markTestIncomplete('This test has not been implemented yet.');
+        $adapter = new class extends ElasticSearchAdapter {
+            /** @inheritDoc */
+            public function buildElasticSearchQuery(string $text, array $options): array
+            {
+                return parent::buildElasticSearchQuery($text, $options);
+            }
+        };
+
+        $actual = $adapter->buildElasticSearchQuery('searchme', []);
+
+        // Document 3 does not match, document 1 matches more often than document 2.
+        static::assertSame(['1', '2'], array_column($actual, 'id'));
+        static::assertGreaterThan($actual[1]['score'], $actual[0]['score']);
     }
 
     /**
