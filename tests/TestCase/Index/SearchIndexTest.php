@@ -6,6 +6,7 @@ namespace BEdita\ElasticSearch\Test\TestCase\Index;
 use BEdita\ElasticSearch\Model\Index\SearchIndex;
 use Cake\Datasource\ConnectionManager;
 use Cake\ElasticSearch\TestSuite\TestCase;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
@@ -36,7 +37,45 @@ class SearchIndexTest extends TestCase
     {
         parent::tearDown();
 
-        $this->index->getConnection()->getIndex($this->index->getName())->delete();
+        if ($this->index->indexExists()) {
+            $this->index->getConnection()->getIndex($this->index->getName())->delete();
+        }
+    }
+
+    /**
+     * Test `getName` method when the name has been explicitly set.
+     *
+     * @return void
+     */
+    public function testGetName(): void
+    {
+        static::assertSame('testindex', $this->index->getName());
+    }
+
+    /**
+     * Test `getDefaultName` method.
+     *
+     * @return void
+     */
+    public function testGetDefaultName(): void
+    {
+        $index = new class (['connection' => ConnectionManager::get('test_elastic')]) extends SearchIndex {
+            private int $depth = 0;
+
+            // Bound the recursion, or a failure exhausts memory instead of reporting.
+            public function getName(): string
+            {
+                if ($this->depth++ > 0) {
+                    Assert::fail('`SearchIndex::getName()` recursed via `Index::getAlias()`');
+                }
+
+                return parent::getName();
+            }
+        };
+
+        /** @var \Cake\Database\Driver $driver */
+        $driver = ConnectionManager::get('default')->getDriver();
+        static::assertStringStartsWith($driver->schema() . '_', $index->getName());
     }
 
     /**

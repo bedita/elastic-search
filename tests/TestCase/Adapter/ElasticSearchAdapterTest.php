@@ -13,6 +13,8 @@ use Cake\ElasticSearch\Index;
 use Cake\ElasticSearch\TestSuite\TestCase;
 use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
+use Cake\TestSuite\Fixture\FixtureStrategyInterface;
+use Cake\TestSuite\Fixture\TruncateStrategy;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -25,6 +27,24 @@ use UnexpectedValueException;
 #[CoversClass(ElasticSearchAdapter::class)]
 class ElasticSearchAdapterTest extends TestCase
 {
+    /**
+     * @inheritDoc
+     */
+    protected array $fixtures = [
+        'plugin.BEdita/ElasticSearch.ObjectTypes',
+        'plugin.BEdita/ElasticSearch.Objects',
+    ];
+
+    /**
+     * {@inheritDoc}
+     *
+     * `DeleteQueryStrategy` only inserts fixtures bound to an ElasticSearch connection.
+     */
+    protected function getFixtureStrategy(): FixtureStrategyInterface
+    {
+        return new TruncateStrategy();
+    }
+
     /**
      * Data provider for {@see ElasticSearchAdapterTest::testGetIndex()} test case.
      *
@@ -143,16 +163,15 @@ class ElasticSearchAdapterTest extends TestCase
             protected function buildElasticSearchQuery(string $text, array $options): array
             {
                 return [
-                    ['id' => '1', 'score' => 1.0],
-                    ['id' => '2', 'score' => 0.5],
+                    ['id' => '3', 'score' => 0.5],
+                    ['id' => '1', 'score' => 1.5],
+                    ['id' => '2', 'score' => 1.0],
                 ];
             }
         };
-        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
-        $text = 'searchme';
-        $actual = $adapter->search($query, $text, []);
-        static::assertInstanceOf(SelectQuery::class, $actual);
-        static::markTestIncomplete('This test has not been implemented yet.');
+        $query = $this->fetchTable('objects')->find();
+        $actual = $adapter->search($query, 'searchme')->all()->extract('id')->toList();
+        static::assertSame([1, 2, 3], $actual);
     }
 
     /**
