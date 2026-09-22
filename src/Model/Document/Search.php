@@ -20,6 +20,10 @@ class Search extends Document
      */
     public function score(): ?float
     {
-        return $this->_result?->getScore();
+        if (!isset($this->_result)) {
+            return null;
+        }
+
+        return $this->_result->getScore();
     }
 }

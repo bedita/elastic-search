@@ -11,33 +11,46 @@ use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\FactoryLocator;
 use Cake\ElasticSearch\Index;
 use Cake\ElasticSearch\TestSuite\TestCase;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
+use Cake\TestSuite\Fixture\FixtureStrategyInterface;
+use Cake\TestSuite\Fixture\TruncateStrategy;
 use Exception;
-use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use UnexpectedValueException;
 
 /**
  * {@see \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter} Test Case
- *
- * @coversDefaultClass \BEdita\ElasticSearch\Adapter\ElasticSearchAdapter
  */
+#[CoversClass(ElasticSearchAdapter::class)]
 class ElasticSearchAdapterTest extends TestCase
 {
     /**
      * @inheritDoc
      */
-    protected $fixtures = [
-//        'plugin.BEdita/Core.ObjectTypes',
-//        'plugin.BEdita/Core.Objects',
+    protected array $fixtures = [
+        'plugin.BEdita/ElasticSearch.ObjectTypes',
+        'plugin.BEdita/ElasticSearch.Objects',
+        'plugin.BEdita/ElasticSearch.Search',
     ];
+
+    /**
+     * {@inheritDoc}
+     *
+     * `DeleteQueryStrategy` only inserts fixtures bound to an ElasticSearch connection.
+     */
+    protected function getFixtureStrategy(): FixtureStrategyInterface
+    {
+        return new TruncateStrategy();
+    }
 
     /**
      * Data provider for {@see ElasticSearchAdapterTest::testGetIndex()} test case.
      *
      * @return array<string, array{\Cake\ElasticSearch\Index|Exception, string|\Cake\ElasticSearch\Index}>
      */
-    public function getIndexProvider(): array
+    public static function getIndexProvider(): array
     {
         /** @var \Cake\ElasticSearch\Datasource\IndexLocator $locator */
         $locator = FactoryLocator::get('ElasticSearch');
@@ -61,9 +74,8 @@ class ElasticSearchAdapterTest extends TestCase
      * @param \Cake\ElasticSearch\Index|Exception $expected Expected outcome.
      * @param string|\Cake\ElasticSearch\Index $index Index configuration.
      * @return void
-     * @dataProvider getIndexProvider()
-     * @covers ::getIndex()
      */
+    #[DataProvider('getIndexProvider')]
     public function testGetIndex(Index|Exception $expected, string|Index $index): void
     {
         if ($expected instanceof Exception) {
@@ -86,19 +98,22 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `buildElasticSearchQuery` method
      *
      * @return void
-     * @covers ::buildElasticSearchQuery()
      */
     public function testBuildElasticSearchQuery(): void
     {
-        $reflectionClass = new ReflectionClass(ElasticSearchAdapter::class);
-        $method = $reflectionClass->getMethod('buildElasticSearchQuery');
-        $method->setAccessible(true);
-        $text = 'searchme';
-        $options = [];
-        $actual = $method->invokeArgs(new ElasticSearchAdapter(), [$text, $options]);
-        $expected = [];
-        static::assertEquals($expected, $actual);
-        static::markTestIncomplete('This test has not been implemented yet.');
+        $adapter = new class extends ElasticSearchAdapter {
+            /** @inheritDoc */
+            public function buildElasticSearchQuery(string $text, array $options): array
+            {
+                return parent::buildElasticSearchQuery($text, $options);
+            }
+        };
+
+        $actual = $adapter->buildElasticSearchQuery('searchme', []);
+
+        // Document 3 does not match, document 1 matches more often than document 2.
+        static::assertSame(['1', '2'], array_column($actual, 'id'));
+        static::assertGreaterThan($actual[1]['score'], $actual[0]['score']);
     }
 
     /**
@@ -106,14 +121,12 @@ class ElasticSearchAdapterTest extends TestCase
      *
      * @return array
      */
-    public function searchProvider(): array
+    public static function searchProvider(): array
     {
-        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
-
         return [
             'query' => [
-                Query::class,
-                $query,
+                SelectQuery::class,
+                ['id' => 1],
                 'text',
                 [],
             ],
@@ -124,23 +137,21 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `search` method
      *
      * @param string $expected
-     * @param Query $query
+     * @param array $conditions
      * @param string $text
      * @param array $options
      * @return void
-     * @covers ::search()
-     * @covers ::buildQuery()
-     * @covers ::buildElasticSearchQuery()
-     * @dataProvider searchProvider()
      */
+    #[DataProvider('searchProvider')]
     public function testSearch(
         string $expected,
-        Query $query,
+        array $conditions,
         string $text,
         array $options = [],
     ): void {
+        $query = $this->fetchTable('objects')->find()->where($conditions);
         $adapter = new ElasticSearchAdapter();
-        $actual = $adapter->search($query, $text, $options)->find('list', ['valueField' => 'id'])->all()->toList();
+        $actual = $adapter->search($query, $text, $options)->find('list', valueField: 'id')->all()->toList();
         $expected = [];
         static::assertSame($expected, $actual);
     }
@@ -149,10 +160,6 @@ class ElasticSearchAdapterTest extends TestCase
      * Test `search` with elastic search
      *
      * @return void
-     * @covers ::search()
-     * @covers ::buildQuery()
-     * @covers ::buildElasticSearchQuery()
-     * @covers ::createTempTable()
      */
     public function testSearchElastic(): void
     {
@@ -160,23 +167,21 @@ class ElasticSearchAdapterTest extends TestCase
             protected function buildElasticSearchQuery(string $text, array $options): array
             {
                 return [
-                    ['id' => '1', 'score' => 1.0],
-                    ['id' => '2', 'score' => 0.5],
+                    ['id' => '3', 'score' => 0.5],
+                    ['id' => '1', 'score' => 1.5],
+                    ['id' => '2', 'score' => 1.0],
                 ];
             }
         };
-        $query = $this->fetchTable('objects')->find()->where(['id' => 1]);
-        $text = 'searchme';
-        $actual = $adapter->search($query, $text, []);
-        static::assertInstanceOf(Query::class, $actual);
-        static::markTestIncomplete('This test has not been implemented yet.');
+        $query = $this->fetchTable('objects')->find();
+        $actual = $adapter->search($query, 'searchme')->all()->extract('id')->toList();
+        static::assertSame([1, 2, 3], $actual);
     }
 
     /**
      * Test `createTempTable` method
      *
      * @return void
-     * @covers ::createTempTable()
      */
     public function testCreateTempTable(): void
     {
@@ -197,24 +202,25 @@ class ElasticSearchAdapterTest extends TestCase
             [
                 'type' => 'integer',
                 'length' => 11,
-                'unsigned' => true,
                 'null' => false,
-                'precision' => null,
                 'default' => null,
+                'generated' => null,
+                'unsigned' => true,
+                'precision' => null,
                 'comment' => null,
-                'autoIncrement' => null,
+                'autoIncrement' => false,
             ],
         );
         static::assertSame(
             $table->getSchema()->getColumn('score'),
             [
                 'type' => 'float',
-                'null' => false,
                 'length' => null,
-                'precision' => null,
+                'null' => false,
                 'default' => null,
-                'comment' => null,
                 'unsigned' => null,
+                'precision' => null,
+                'comment' => null,
             ],
         );
     }

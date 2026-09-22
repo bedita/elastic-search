@@ -8,12 +8,12 @@ use BEdita\ElasticSearch\Command\UpdateIndexCommand;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\PluginApplicationInterface;
-use Cake\ElasticSearch\Plugin as ElasticSearchPlugin;
+use Cake\ElasticSearch\ElasticSearchPlugin as CakeElasticSearchPlugin;
 
 /**
  * Plugin for BEdita ElasticSearch
  */
-class Plugin extends BasePlugin
+class ElasticSearchPlugin extends BasePlugin
 {
     /**
      * {@inheritDoc}
@@ -24,7 +24,7 @@ class Plugin extends BasePlugin
     {
         parent::bootstrap($app);
 
-        $app->addPlugin(ElasticSearchPlugin::class);
+        $app->addPlugin(CakeElasticSearchPlugin::class);
     }
 
     /**

@@ -15,7 +15,7 @@ class ObjectTypesFixture extends BEditaObjectTypesFixture
      *
      * @var array
      */
-    public $records = [
+    public array $records = [
         // 1
         [
             'singular' => 'object',

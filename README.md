@@ -22,3 +22,13 @@ The recommended way to install composer packages is:
 ```bash
 composer require bedita/elastic-search
 ```
+
+## OpenSearch compatibility
+
+OpenSearch rejects the `compatible-with` media type sent by `elasticsearch/elasticsearch` 9 and does not send the
+`X-Elastic-Product` header the client checks. `BEdita\ElasticSearch\Datasource\Connection` with `driver=opensearch`
+works around both:
+
+```
+DATABASE_ELASTIC_DSN='http://127.0.0.1:9200/?className=BEdita\ElasticSearch\Datasource\Connection&driver=opensearch'
+```

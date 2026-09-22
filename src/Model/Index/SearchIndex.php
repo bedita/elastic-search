@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace BEdita\ElasticSearch\Model\Index;
 
-use Cake\Database\DriverInterface;
-use Cake\Datasource\ConnectionManager;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Index;
 use Cake\ElasticSearch\Query;
@@ -12,10 +10,8 @@ use Cake\ElasticSearch\QueryBuilder;
 use Cake\Log\Log;
 use Cake\Log\LogTrait;
 use Cake\Utility\Hash;
-use Cake\Utility\Inflector;
+use Elastica\Mapping;
 use Elastica\Query\AbstractQuery;
-use Elasticsearch\Endpoints\Indices\PutMapping;
-use Elasticsearch\Endpoints\Indices\PutSettings;
 use RuntimeException;
 
 /**
@@ -43,46 +39,6 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/configure-text-analysis.html
      */
     protected static array $_analysis = [];
-
-    /**
-     * Returns the index name.
-     *
-     * If it isn't set, it is constructed from the default collection schema and the alias for the index.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        if ($this->_name === null) {
-            $defaultName = $this->getDefaultName();
-            if ($defaultName !== null) {
-                $this->_name = $defaultName;
-            }
-        }
-
-        return parent::getName();
-    }
-
-    /**
-     * Returns the default index name, constructed from the default collection schema and the alias for the index.
-     *
-     * @return string|null
-     */
-    protected function getDefaultName(): ?string
-    {
-        $driver = ConnectionManager::get('default')->getDriver();
-        if (!$driver instanceof DriverInterface) {
-            return null;
-        }
-
-        $prefix = $driver->schema();
-        $suffix = Inflector::underscore($this->getAlias());
-        if (empty($prefix) || empty($suffix)) {
-            return null;
-        }
-
-        return $prefix . '_' . $suffix;
-    }
 
     /**
      * @inheritDoc
@@ -130,10 +86,8 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
             $properties = static::$_properties;
         }
 
-        $endpoint = new PutMapping();
-        $endpoint->setBody(compact('properties'));
         $esIndex = $this->getConnection()->getIndex($this->getName());
-        $response = $esIndex->requestEndpoint($endpoint);
+        $response = $esIndex->setMapping(new Mapping($properties));
         if (!$response->isOk()) {
             Log::error(sprintf(
                 'Error updating index "%s" mappings: %s',
@@ -202,9 +156,7 @@ class SearchIndex extends Index implements AdapterCompatibleInterface
                 return true;
             }
 
-            $endpoint = new PutSettings();
-            $endpoint->setBody(compact('analysis'));
-            $response = $esIndex->requestEndpoint($endpoint);
+            $response = $esIndex->setSettings(compact('analysis'));
             if (!$response->isOk()) {
                 Log::error(sprintf(
                     'Error updating index "%s" settings: %s',
