@@ -68,6 +68,7 @@ ConnectionManager::setConfig('test_elastic', [
     'className' => ElasticConnection::class,
     'host' => '127.0.0.1',
     'port' => 9200,
+    'driver' => 'opensearch',
 
     'transport_config' => [
         'http_client_config' => [

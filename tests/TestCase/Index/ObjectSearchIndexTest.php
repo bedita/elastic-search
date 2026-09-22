@@ -40,6 +40,7 @@ class ObjectSearchIndexTest extends TestCase
         parent::tearDown();
 
         DateTime::setTestNow(null);
+        Configure::delete('Publish.checkDate');
     }
 
     /**
