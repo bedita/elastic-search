@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace BEdita\ElasticSearch\Model\Index;
 
 use BEdita\Core\Model\Entity\ObjectEntity;
+use BEdita\Core\Model\Enum\ObjectEntityStatus;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\ElasticSearch\Query;
@@ -50,7 +51,7 @@ class ObjectSearchIndex extends SearchIndex
             ->notEmptyString('type')
             ->requirePresence('type', 'create')
 
-            ->inList('status', ['on', 'draft', 'off'])
+            ->enum('status', ObjectEntityStatus::class)
             ->requirePresence('status', 'create')
 
             ->boolean('deleted')
